@@ -1,0 +1,2296 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>個別支援計画書 支援ツール | ユリーカハイム</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
+:root {
+  --primary:#1F3864; --primary-light:#2e4f8a; --primary-bg:#eef2fa;
+  --accent:#e8523a; --warn:#e8a020; --ok:#2e8b57;
+  --bg:#f4f6fa; --card:#fff; --border:#dde3ee;
+  --text:#1a2340; --muted:#7a85a0;
+  --step1:#3a7bd5; --step2:#9b59b6; --step3:#27ae60;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+header{background:var(--primary);color:#fff;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:56px;box-shadow:0 2px 8px rgba(31,56,100,.18);}
+header h1{font-size:15px;font-weight:700;letter-spacing:.04em;}
+header span{font-size:12px;opacity:.7;}
+
+.page-nav{display:flex;background:var(--primary);border-top:1px solid rgba(255,255,255,.1);padding:0 24px;}
+.page-nav button{background:none;border:none;color:rgba(255,255,255,.6);font-family:inherit;font-size:13px;padding:10px 18px;cursor:pointer;border-bottom:3px solid transparent;transition:all .15s;font-weight:500;}
+.page-nav button.active{color:#fff;border-bottom-color:#fff;}
+
+.container{max-width:1040px;margin:0 auto;padding:20px 16px;}
+.page{display:none;} .page.active{display:block;}
+
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;}
+.sc{background:var(--card);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:12px;border-left:4px solid transparent;box-shadow:0 1px 4px rgba(0,0,0,.07);}
+.sc.danger{border-color:var(--accent);} .sc.warn{border-color:var(--warn);} .sc.ok{border-color:var(--ok);} .sc.progress{border-color:var(--step2);}
+.sc-icon{font-size:20px;} .sc-num{font-size:24px;font-weight:700;line-height:1;} .sc-label{font-size:10px;color:var(--muted);margin-top:2px;}
+
+.toolbar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center;}
+.toolbar input{flex:1;min-width:150px;border:1.5px solid var(--border);border-radius:7px;padding:7px 12px;font-family:inherit;font-size:13px;outline:none;}
+.toolbar input:focus{border-color:var(--primary-light);}
+
+.btn{border:none;border-radius:7px;padding:7px 15px;font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;transition:opacity .15s,transform .1s;}
+.btn:active{transform:scale(.97);}
+.btn-primary{background:var(--primary);color:#fff;}
+.btn-primary:hover{background:var(--primary-light);}
+.btn-sm{padding:4px 10px;font-size:11px;}
+.btn-cancel{background:var(--bg);color:var(--muted);}
+.btn-danger-s{background:#fff0ee;color:var(--accent);}
+
+.filter-tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
+.tab{padding:4px 13px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--muted);transition:all .15s;}
+.tab.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+
+.table-wrap{background:var(--card);border-radius:12px;box-shadow:0 1px 6px rgba(0,0,0,.07);overflow:hidden;}
+table{width:100%;border-collapse:collapse;}
+thead tr{background:var(--primary);color:#fff;}
+thead th{padding:10px 12px;font-size:11px;font-weight:500;text-align:left;letter-spacing:.03em;}
+tbody tr{border-bottom:1px solid var(--border);transition:background .12s;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:#f7f9ff;}
+tbody td{padding:10px 12px;font-size:12px;vertical-align:middle;}
+tbody tr.row-danger td:first-child{border-left:3px solid var(--accent);}
+tbody tr.row-warn td:first-child{border-left:3px solid var(--warn);}
+
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap;}
+.badge.danger{background:#fff0ee;color:var(--accent);}
+.badge.warn{background:#fff8ee;color:#b07800;}
+.badge.ok{background:#eef8f2;color:var(--ok);}
+.days-chip{font-size:12px;font-weight:700;}
+.days-chip.danger{color:var(--accent);} .days-chip.warn{color:#b07800;} .days-chip.ok{color:var(--ok);}
+
+/* ステップバー */
+.step-bar{display:flex;align-items:flex-start;gap:0;min-width:210px;}
+.step-node{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;}
+.step-circle{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;border:2px solid var(--border);background:#f0f0f0;color:var(--muted);cursor:pointer;transition:all .15s;user-select:none;-webkit-tap-highlight-color:rgba(0,0,0,.1);touch-action:manipulation;pointer-events:auto;}
+.step-circle.done{background:var(--ok);border-color:var(--ok);color:#fff;}
+.step-circle.active-step{background:var(--warn);border-color:var(--warn);color:#fff;box-shadow:0 0 0 3px rgba(232,160,32,.2);}
+.step-circle:hover{opacity:.75;}
+.step-label{font-size:9px;color:var(--muted);white-space:nowrap;text-align:center;}
+.step-label.done{color:var(--ok);} .step-label.active-step{color:#b07800;font-weight:700;}
+.step-line{height:2px;background:var(--border);flex:1;margin-top:13px;}
+.step-line.done{background:var(--ok);}
+
+/* モーダル */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(10,20,50,.45);z-index:100;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:#fff;border-radius:14px;padding:24px 24px 18px;width:100%;max-width:480px;box-shadow:0 8px 32px rgba(0,0,0,.18);max-height:92vh;overflow-y:auto;}
+.modal h2{font-size:15px;font-weight:700;color:var(--primary);margin-bottom:16px;}
+.field{margin-bottom:12px;}
+.field label{display:block;font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:500;}
+.field input,.field select,.field textarea{width:100%;border:1.5px solid var(--border);border-radius:7px;padding:7px 11px;font-family:inherit;font-size:13px;outline:none;transition:border .2s;resize:vertical;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--primary-light);}
+.section-label{font-size:10px;font-weight:700;color:var(--primary);letter-spacing:.05em;margin:14px 0 10px;padding-bottom:4px;border-bottom:1px solid var(--border);}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;}
+
+.step-modal-header{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.step-modal-icon{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.step-modal-icon.s1{background:#e8f0fd;} .step-modal-icon.s2{background:#f3e8fd;} .step-modal-icon.s3{background:#e8f8ee;} .step-modal-icon.s4{background:#fef0e0;}
+
+/* ログ */
+.log-section{margin-bottom:24px;}
+.log-section h3{font-size:13px;font-weight:700;color:var(--primary);margin-bottom:10px;}
+.log-card{background:var(--card);border-radius:10px;padding:13px 15px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,.06);border-left:3px solid var(--border);}
+.log-card.s1{border-left-color:var(--step1);} .log-card.s2{border-left-color:var(--step2);} .log-card.s3{border-left-color:var(--step3);} .log-card.s4{border-left-color:#e67e22;}
+.log-meta{font-size:11px;color:var(--muted);margin-bottom:3px;}
+.log-name{font-size:13px;font-weight:700;margin-bottom:2px;}
+.log-memo{font-size:12px;color:#444;margin-top:3px;}
+.log-step-tag{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;margin-right:5px;}
+.log-step-tag.s1{background:#e8f0fd;color:var(--step1);} .log-step-tag.s2{background:#f3e8fd;color:var(--step2);} .log-step-tag.s3{background:#e8f8ee;color:var(--step3);}
+
+.resident-log-block{background:var(--card);border-radius:10px;margin-bottom:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.resident-log-header{background:var(--primary-bg);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;}
+.resident-log-header h4{font-size:13px;font-weight:700;color:var(--primary);}
+.resident-log-body{padding:12px 14px;}
+.timeline-item{display:flex;gap:10px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+.timeline-item:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+.tl-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+.tl-dot.s1{background:var(--step1);} .tl-dot.s2{background:var(--step2);} .tl-dot.s3{background:var(--step3);} .tl-dot.s4{background:#e67e22;}
+.tl-content{flex:1;}
+.tl-date{font-size:10px;color:var(--muted);}
+.tl-label{font-size:12px;font-weight:500;}
+.tl-memo{font-size:11px;color:#555;margin-top:2px;}
+
+.empty{text-align:center;padding:36px;color:var(--muted);font-size:13px;}
+
+/* 履歴リスト */
+.history-item{background:var(--card);border:1.5px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden;transition:box-shadow .15s;}
+.history-item:hover{box-shadow:0 3px 12px rgba(31,56,100,.12);}
+.history-header{padding:12px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;background:var(--primary-bg);}
+.history-date{font-size:13px;font-weight:700;color:var(--primary);}
+.history-meta{font-size:11px;color:var(--muted);margin-top:2px;}
+.history-edit-btn{background:var(--primary);color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;}
+.history-steps{padding:12px 14px;border-top:1px solid var(--border);}
+.hstep{display:flex;gap:10px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+.hstep:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none;}
+.hstep-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.hstep-dot.s1{background:var(--step1);} .hstep-dot.s2{background:var(--step2);} .hstep-dot.s3{background:var(--step3);}
+.hstep-label{font-size:11px;font-weight:700;color:var(--text);margin-bottom:2px;}
+.hstep-detail{font-size:11px;color:var(--muted);line-height:1.6;}
+
+/* 履歴編集フォーム */
+.he-section{margin-bottom:16px;padding:14px;background:var(--bg);border-radius:8px;}
+.he-section-title{font-size:11px;font-weight:700;color:var(--primary);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.he-grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+
+/* ソート */
+thead th.sortable{cursor:pointer;user-select:none;}
+thead th.sortable:hover{background:var(--primary-light);}
+thead th.sort-asc .sort-icon::after{content:'↑';} 
+thead th.sort-desc .sort-icon::after{content:'↓';}
+thead th.sort-asc .sort-icon,thead th.sort-desc .sort-icon{opacity:1;}
+.sort-icon{opacity:.4;font-size:10px;margin-left:3px;}
+
+/* 相談事業所カード */
+.agency-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;}
+.agency-card{background:var(--card);border-radius:12px;box-shadow:0 1px 6px rgba(0,0,0,.07);overflow:hidden;}
+.agency-card-header{background:var(--primary);color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;}
+.agency-card-name{font-size:14px;font-weight:700;}
+.agency-edit-btn{background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:inherit;}
+.agency-card-body{padding:14px 16px;}
+.agency-info-row{display:flex;gap:8px;font-size:12px;margin-bottom:6px;align-items:flex-start;}
+.agency-info-icon{width:16px;flex-shrink:0;color:var(--muted);}
+.agency-info-val{color:var(--text);flex:1;}
+.agency-divider{border:none;border-top:1px solid var(--border);margin:10px 0;}
+.planner-chip{display:inline-flex;align-items:center;gap:4px;background:var(--primary-bg);color:var(--primary);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:500;margin:2px;}
+.resident-chip{display:inline-flex;align-items:center;background:#eef8f2;color:var(--ok);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:500;margin:2px;}
+.planner-field-row{display:flex;gap:6px;align-items:flex-start;margin-bottom:10px;padding:10px;background:var(--bg);border-radius:8px;flex-direction:column;}
+.planner-field-main{display:flex;gap:6px;align-items:center;width:100%;}
+.planner-field-main input{flex:1;border:1.5px solid var(--border);border-radius:7px;padding:6px 10px;font-family:inherit;font-size:13px;outline:none;}
+.planner-field-main input:focus{border-color:var(--primary-light);}
+.planner-contacts{width:100%;display:flex;flex-direction:column;gap:6px;margin-top:4px;}
+.planner-contact-row{display:flex;gap:6px;align-items:center;}
+.planner-contact-row select{border:1.5px solid var(--border);border-radius:7px;padding:5px 8px;font-family:inherit;font-size:12px;outline:none;background:#fff;color:var(--text);flex-shrink:0;}
+.planner-contact-row input{flex:1;border:1.5px solid var(--border);border-radius:7px;padding:5px 8px;font-family:inherit;font-size:12px;outline:none;}
+.planner-contact-row input:focus,.planner-contact-row select:focus{border-color:var(--primary-light);}
+.add-contact-btn{background:none;border:1.5px dashed var(--border);border-radius:6px;color:var(--muted);font-size:11px;padding:4px 10px;cursor:pointer;font-family:inherit;width:100%;}
+.add-contact-btn:hover{border-color:var(--primary);color:var(--primary);}
+.planner-remove-btn{background:#fff0ee;border:none;color:var(--accent);border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:14px;flex-shrink:0;}
+
+/* ==================== スマホ対応 ==================== */
+@media (max-width: 768px) {
+
+  /* ヘッダー */
+  header h1 { font-size: 12px; letter-spacing: 0; }
+  header { padding: 0 12px; }
+
+  /* ナビ：横スクロール */
+  .page-nav {
+    padding: 0;
+    overflow-x: scroll;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex-shrink: 0;
+    display: flex;
+    flex-wrap: nowrap;
+  }
+  .page-nav::-webkit-scrollbar { display: none; }
+  .page-nav button {
+    font-size: 11px;
+    padding: 10px 12px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    min-width: fit-content;
+  }
+
+  /* コンテナ */
+  .container { padding: 12px 10px; }
+
+  /* サマリーカード：2列 */
+  .summary { grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 14px; }
+  .sc-num { font-size: 20px; }
+  .sc-icon { font-size: 16px; }
+  .sc-label { font-size: 9px; }
+
+  /* ツールバー */
+  .toolbar { gap: 6px; margin-bottom: 10px; }
+  .toolbar input { font-size: 13px; }
+
+  /* フィルタタブ：横スクロール */
+  .filter-tabs {
+    overflow-x: scroll;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex-wrap: nowrap;
+    margin-bottom: 10px;
+    display: flex;
+  }
+  .filter-tabs::-webkit-scrollbar { display: none; }
+  .tab { white-space: nowrap; flex-shrink: 0; font-size: 11px; padding: 4px 10px; }
+
+  /* テーブルラッパー：横スクロール */
+  .table-wrap {
+    overflow-x: scroll;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 10px;
+    display: block;
+    width: 100%;
+  }
+  table { min-width: 600px; display: table; }
+
+  /* ダッシュボードテーブルはカード形式に */
+  #page-dashboard .table-wrap { overflow: visible; }
+  #page-dashboard table { display: none; }
+  #dash-empty { display: none !important; }
+  #dash-cards-sp {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* ステップバー：スマホ向け拡大 */
+  .step-bar { min-width: 0; gap: 0; }
+  .step-circle {
+    width: 34px;
+    height: 34px;
+    font-size: 13px;
+    touch-action: manipulation;
+  }
+  .step-label { font-size: 8px; }
+  .step-line { height: 2px; }
+
+  /* モーダル：画面下からシート形式 */
+  .modal-overlay { align-items: flex-end; }
+  .modal {
+    border-radius: 18px 18px 0 0;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 20px 18px 32px;
+    max-width: 100% !important;
+    width: 100%;
+  }
+
+  /* 確認系モーダル（小さいもの）はそのまま中央 */
+  #modal-delete-resident .modal,
+  #modal-delete-agency .modal,
+  #modal-delete-facility .modal,
+  #modal-delete-staff .modal,
+  #modal-delete-log .modal,
+  #modal-register .modal,
+  #modal-log-clear .modal {
+    border-radius: 14px;
+    margin: 0 16px 0;
+    max-height: 80vh;
+  }
+  #modal-delete-resident,
+  #modal-delete-agency,
+  #modal-delete-facility,
+  #modal-delete-staff,
+  #modal-delete-log,
+  #modal-register,
+  #modal-log-clear { align-items: center; }
+
+  /* グリッド系：1列に */
+  .agency-grid { grid-template-columns: 1fr; }
+  .he-grid3 { grid-template-columns: 1fr; }
+  [style*="grid-template-columns:1fr 1fr"] { display: block !important; }
+  [style*="grid-template-columns:1fr 1fr;"] { display: block !important; }
+
+  /* ボタン類 */
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+  /* ログイン画面 */
+  #login-screen > div { margin: 0 16px; padding: 28px 20px; }
+}
+
+/* ダッシュボード スマホ用カード */
+.dash-sp-card {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 14px;
+  box-shadow: 0 1px 6px rgba(0,0,0,.07);
+  border-left: 4px solid var(--border);
+}
+.dash-sp-card.row-danger { border-left-color: var(--accent); }
+.dash-sp-card.row-warn   { border-left-color: var(--warn); }
+.dash-sp-card.row-ok     { border-left-color: var(--ok); }
+.dash-sp-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.dash-sp-name { font-size: 15px; font-weight: 700; }
+.dash-sp-kana { font-size: 10px; color: var(--muted); margin-top: 1px; }
+.dash-sp-meta { font-size: 11px; color: var(--muted); margin-bottom: 8px; display: flex; gap: 12px; flex-wrap: wrap; }
+.dash-sp-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; gap: 8px; flex-wrap: wrap; }
+
+/* 計画相談モニタリング予定 */
+.monitoring-year-block { background: var(--bg); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; }
+.monitoring-year-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.monitoring-year-header select { border: 1.5px solid var(--border); border-radius: 7px; padding: 5px 8px; font-family: inherit; font-size: 13px; outline: none; background: #fff; }
+.monitoring-year-header input { border: 1.5px solid var(--border); border-radius: 7px; padding: 5px 8px; font-family: inherit; font-size: 13px; outline: none; width: 80px; }
+.monitoring-months { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.month-chip { display: inline-flex; align-items: center; gap: 4px; background: var(--primary-bg); color: var(--primary); border-radius: 20px; padding: 3px 10px; font-size: 12px; font-weight: 500; cursor: pointer; border: 1.5px solid transparent; transition: all .15s; }
+.month-chip.selected { background: var(--primary); color: #fff; }
+.monitoring-tag { display: inline-block; background: #e8f4fd; color: #1a6fa8; border-radius: 4px; padding: 2px 7px; font-size: 10px; font-weight: 600; margin: 1px; }
+</style>
+</head>
+<body>
+
+<!-- ログイン画面 -->
+<div id="login-screen" style="display:flex;position:fixed;inset:0;background:var(--primary);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:16px;padding:36px 32px;width:100%;max-width:360px;box-shadow:0 8px 32px rgba(0,0,0,.2);text-align:center;">
+    <div style="font-size:36px;margin-bottom:8px">📋</div>
+    <h1 style="font-size:17px;font-weight:700;color:var(--primary);margin-bottom:4px">個別支援計画書 支援ツール</h1>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:24px">ユリーカハイム</p>
+    <div style="text-align:left;margin-bottom:16px">
+      <label style="font-size:11px;color:var(--muted);font-weight:500;display:block;margin-bottom:6px">パスワード</label>
+      <input type="password" id="login-password" placeholder="パスワードを入力"
+        style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:10px 14px;font-family:inherit;font-size:15px;outline:none;"
+        onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div id="login-error" style="color:var(--accent);font-size:12px;margin-bottom:12px;display:none">パスワードが違います</div>
+    <button onclick="doLogin()" style="width:100%;background:var(--primary);color:#fff;border:none;border-radius:8px;padding:12px;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;">ログイン</button>
+  </div>
+</div>
+
+<!-- ローディングオーバーレイ -->
+<div id="loading-overlay" style="display:none;position:fixed;inset:0;background:rgba(31,56,100,.7);z-index:999;align-items:center;justify-content:center;flex-direction:column;gap:16px;">
+  <div style="width:40px;height:40px;border:4px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;"></div>
+  <div id="loading-msg" style="color:#fff;font-size:14px;font-weight:500;font-family:'Noto Sans JP',sans-serif;">読み込み中…</div>
+</div>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+
+<header>
+  <h1>📋 個別支援計画書 支援ツール | ユリーカハイム</h1>
+  <span id="today-label"></span>
+</header>
+<div class="page-nav">
+  <button class="active" onclick="showPage('dashboard',this)">ダッシュボード</button>
+  <button onclick="showPage('residents',this)">利用者一覧</button>
+  <button onclick="showPage('facilities',this)">施設</button>
+  <button onclick="showPage('agencies',this)">相談事業所</button>
+  <button onclick="showPage('staff',this)">スタッフ</button>
+  <button onclick="showPage('logs',this)">実施ログ</button>
+</div>
+
+<!-- ===== ダッシュボード ===== -->
+<div class="page active" id="page-dashboard">
+<div class="container">
+  <div class="summary">
+    <div class="sc danger"><div class="sc-icon">🚨</div><div><div class="sc-num" id="cnt-danger">0</div><div class="sc-label">期限切れ・7日以内</div></div></div>
+    <div class="sc warn"><div class="sc-icon">⚠️</div><div><div class="sc-num" id="cnt-warn">0</div><div class="sc-label">30日以内</div></div></div>
+    <div class="sc ok"><div class="sc-icon">✅</div><div><div class="sc-num" id="cnt-ok">0</div><div class="sc-label">余裕あり</div></div></div>
+    <div class="sc progress"><div class="sc-icon">🔄</div><div><div class="sc-num" id="cnt-progress">0</div><div class="sc-label">手続き進行中</div></div></div>
+  </div>
+  <div class="filter-tabs">
+    <div class="tab active" onclick="setFilter('all',this)">すべて</div>
+    <div class="tab" onclick="setFilter('danger',this)">🚨 要対応</div>
+    <div class="tab" onclick="setFilter('warn',this)">⚠️ 注意</div>
+    <div class="tab" onclick="setFilter('ok',this)">✅ 余裕あり</div>
+    <div class="tab" onclick="setFilter('progress',this)">🔄 進行中</div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th style="width:36px">No</th>
+        <th class="sortable" onclick="setSort('name',this)">利用者名 <span class="sort-icon">⇅</span></th>
+        <th class="sortable" onclick="setSort('facility',this)">施設 <span class="sort-icon">⇅</span></th>
+        <th>担当サビ管</th>
+        <th class="sortable" onclick="setSort('last',this)">前回実施日 <span class="sort-icon">⇅</span></th>
+        <th class="sortable" onclick="setSort('nextDate',this)">次回期限 <span class="sort-icon">⇅</span></th>
+        <th class="sortable" onclick="setSort('days',this)">残日数 <span class="sort-icon">⇅</span></th>
+        <th style="min-width:280px">①実施　②原案　③カンファ　④郵送</th>
+        <th></th>
+        <th></th>
+      </tr></thead>
+      <tbody id="dash-tbody"></tbody>
+    </table>
+    <div class="empty" id="dash-empty" style="display:none">該当する利用者がいません</div>
+  </div>
+  <!-- スマホ用カード表示 -->
+  <div id="dash-cards-sp" style="display:none"></div>
+</div>
+</div>
+
+<!-- ===== 利用者一覧 ===== -->
+<div class="page" id="page-residents">
+<div class="container">
+  <div class="toolbar">
+    <input type="text" id="res-search" placeholder="利用者名・施設名で検索…">
+    <button class="btn btn-primary" onclick="openAddModal()">＋ 利用者追加</button>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th style="width:36px">No</th>
+        <th class="sortable" onclick="setResSort('kana',this)">利用者名 <span class="res-sort-icon">⇅</span></th>
+        <th class="sortable" onclick="setResSort('facility',this)">施設 <span class="res-sort-icon">⇅</span></th>
+        <th>相談事業所 / 相談員</th><th>担当サビ管</th>
+        <th class="sortable" onclick="setResSort('last',this)">前回実施日 <span class="res-sort-icon">⇅</span></th>
+        <th class="sortable" onclick="setResSort('nextDate',this)">次回期限 <span class="res-sort-icon">⇅</span></th>
+        <th>周期</th><th>計画相談<br>モニタリング予定</th><th>備考</th><th>操作</th>
+      </tr></thead>
+      <tbody id="res-tbody"></tbody>
+    </table>
+    <div class="empty" id="res-empty" style="display:none">利用者が登録されていません</div>
+  </div>
+</div>
+</div>
+
+<!-- ===== 施設マスター ===== -->
+<div class="page" id="page-facilities">
+<div class="container">
+  <div class="toolbar">
+    <input type="text" id="facility-search" placeholder="施設名で検索…">
+    <button class="btn btn-primary" onclick="openFacilityModal()">＋ 施設追加</button>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th style="width:40px">No</th>
+        <th>施設名</th>
+        <th>住所</th>
+        <th>電話番号</th>
+        <th>担当利用者数</th>
+        <th></th>
+      </tr></thead>
+      <tbody id="facility-tbody"></tbody>
+    </table>
+    <div class="empty" id="facility-empty" style="display:none">施設が登録されていません</div>
+  </div>
+</div>
+</div>
+
+<!-- ===== 相談事業所情報 ===== -->
+<div class="page" id="page-agencies">
+<div class="container">
+  <div class="toolbar">
+    <input type="text" id="agency-search" placeholder="事業所名・相談員名で検索…">
+    <button class="btn btn-primary" onclick="openAgencyModal()">＋ 事業所追加</button>
+  </div>
+  <div id="agency-cards"></div>
+  <div class="empty" id="agency-empty" style="display:none">相談事業所が登録されていません</div>
+</div>
+</div>
+
+<!-- ===== スタッフ ===== -->
+<div class="page" id="page-staff">
+<div class="container">
+  <div class="toolbar">
+    <input type="text" id="staff-search" placeholder="氏名・役職で検索…">
+    <button class="btn btn-primary" onclick="openStaffModal()">＋ スタッフ追加</button>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th style="width:40px">No</th>
+        <th>氏名</th>
+        <th>役職</th>
+        <th>施設</th>
+        <th>連絡先</th>
+        <th>備考</th>
+        <th></th>
+      </tr></thead>
+      <tbody id="staff-tbody"></tbody>
+    </table>
+    <div class="empty" id="staff-empty" style="display:none">スタッフが登録されていません</div>
+  </div>
+</div>
+</div>
+
+<!-- ===== ログ ===== -->
+<div class="page" id="page-logs">
+<div class="container">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+    <div class="filter-tabs" style="margin-bottom:0">
+      <div class="tab active" onclick="setLogView('all',this)">全体ログ</div>
+      <div class="tab" onclick="setLogView('resident',this)">利用者別タイムライン</div>
+    </div>
+    <button class="btn btn-sm" style="background:#fff0ee;color:var(--accent);font-weight:600" onclick="openLogClearConfirm()">🗑 ログをクリア</button>
+  </div>
+  <div id="log-all-view"></div>
+  <div id="log-resident-view" style="display:none"></div>
+</div>
+</div>
+
+<!-- ===== 利用者追加・編集モーダル ===== -->
+<div class="modal-overlay" id="modal-edit">
+<div class="modal">
+  <h2 id="edit-modal-title">利用者を追加</h2>
+  <div class="section-label">基本情報</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+    <div class="field"><label>利用者名 *</label><input type="text" id="f-name" placeholder="例：山田 太郎"></div>
+    <div class="field"><label>ふりがな（カナ） *</label><input type="text" id="f-kana" placeholder="例：ヤマダ タロウ"></div>
+  </div>
+  <div class="field"><label>施設</label>
+    <select id="f-facility"></select>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+    <div class="field"><label>前回モニタリング実施日 *</label><input type="date" id="f-last"></div>
+    <div class="field"><label>モニタリング周期</label>
+      <select id="f-cycle">
+        <option value="6">6ヶ月（標準）</option>
+        <option value="3">3ヶ月</option>
+        <option value="12">12ヶ月</option>
+      </select>
+    </div>
+  </div>
+  <div class="section-label">相談支援</div>
+  <div class="field">
+    <label>相談事業所</label>
+    <select id="f-agency" onchange="onAgencySelectChange()">
+      <option value="">― 選択してください ―</option>
+    </select>
+  </div>
+  <div class="field">
+    <label>相談員名</label>
+    <select id="f-planner">
+      <option value="">― 事業所を選択後に選んでください ―</option>
+    </select>
+  </div>
+  <div class="section-label">グループホーム担当</div>
+  <div class="field"><label>担当サービス管理責任者（サビ管）</label>
+    <select id="f-sabikan"></select>
+  </div>
+  <div class="field"><label>備考</label><input type="text" id="f-note" placeholder="例：次回は家族参加予定"></div>
+  <div class="section-label">計画相談 モニタリング予定</div>
+  <div id="f-monitoring-wrap"></div>
+  <button class="btn btn-sm" style="background:#eef2ff;color:var(--primary);margin-bottom:12px" onclick="addMonitoringRow()">＋ 年度・月を追加</button>
+  <div class="modal-actions">
+    <button class="btn btn-danger-s btn-sm" id="btn-delete-resident" onclick="openDeleteResidentConfirm()" style="margin-right:auto;display:none">削除</button>
+    <button class="btn btn-cancel" onclick="closeModal('modal-edit')">キャンセル</button>
+    <button class="btn btn-primary" onclick="saveResident()">保存</button>
+  </div>
+</div>
+</div>
+
+<!-- ===== ステップ完了モーダル ===== -->
+<div class="modal-overlay" id="modal-step">
+<div class="modal">
+  <div class="step-modal-header">
+    <div class="step-modal-icon" id="step-modal-icon"></div>
+    <div>
+      <div style="font-size:12px;color:var(--muted)" id="step-modal-sub"></div>
+      <h2 style="margin:0" id="step-modal-title"></h2>
+    </div>
+  </div>
+  <div id="step-modal-body"></div>
+  <div class="modal-actions">
+    <button class="btn btn-cancel" onclick="closeModal('modal-step')">キャンセル</button>
+    <button class="btn btn-primary" onclick="saveStep()">完了を記録</button>
+  </div>
+</div>
+</div>
+
+<!-- ===== 相談事業所 追加・編集モーダル ===== -->
+<div class="modal-overlay" id="modal-agency">
+<div class="modal" style="max-width:500px">
+  <h2 id="agency-modal-title">相談事業所を追加</h2>
+  <div class="section-label">事業所情報</div>
+  <div class="field"><label>事業所名 *</label><input type="text" id="ag-name" placeholder="例：ちいきケア草加"></div>
+  <div style="display:grid;grid-template-columns:160px 1fr;gap:10px">
+    <div class="field"><label>郵便番号</label><input type="text" id="ag-zip" placeholder="例：340-0000" maxlength="8"></div>
+    <div class="field"><label>住所</label><input type="text" id="ag-address" placeholder="例：埼玉県草加市〇〇1-2-3"></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div class="field"><label>電話番号</label><input type="tel" id="ag-tel" placeholder="例：048-000-0000"></div>
+    <div class="field"><label>FAX</label><input type="tel" id="ag-fax" placeholder="例：048-000-0001"></div>
+  </div>
+  <div class="section-label">相談員</div>
+  <div id="ag-planners-wrap"></div>
+  <button class="btn btn-sm" style="background:#eef2ff;color:var(--primary);margin-top:4px" onclick="addPlannerField()">＋ 相談員を追加</button>
+  <div class="modal-actions">
+    <button class="btn btn-danger-s btn-sm" id="btn-delete-agency" style="margin-right:auto;display:none" onclick="openDeleteAgencyConfirm()">削除</button>
+    <button class="btn btn-cancel" onclick="closeModal('modal-agency')">キャンセル</button>
+    <button class="btn btn-primary" onclick="saveAgency()">保存</button>
+  </div>
+</div>
+</div>
+
+<!-- ===== 施設追加・編集モーダル ===== -->
+<div class="modal-overlay" id="modal-facility">
+<div class="modal" style="max-width:440px">
+  <h2 id="facility-modal-title">施設を追加</h2>
+  <div class="field"><label>施設名 *</label><input type="text" id="fc-name" placeholder="例：ハイム3"></div>
+  <div class="field"><label>住所</label><input type="text" id="fc-address" placeholder="例：埼玉県草加市〇〇1-2-3"></div>
+  <div class="field"><label>電話番号</label><input type="tel" id="fc-tel" placeholder="例：048-000-0000"></div>
+  <div class="field"><label>備考</label><input type="text" id="fc-note" placeholder="例：定員6名"></div>
+  <div class="modal-actions">
+    <button class="btn btn-danger-s btn-sm" id="btn-delete-facility" style="margin-right:auto;display:none" onclick="openDeleteFacilityConfirm()">削除</button>
+    <button class="btn btn-cancel" onclick="closeModal('modal-facility')">キャンセル</button>
+    <button class="btn btn-primary" onclick="saveFacility()">保存</button>
+  </div>
+</div>
+</div>
+
+<!-- ===== 施設削除確認モーダル ===== -->
+<div class="modal-overlay" id="modal-delete-facility">
+<div class="modal" style="max-width:340px;text-align:center">
+  <div style="font-size:36px;margin-bottom:12px">🗑</div>
+  <h2 style="margin-bottom:8px;font-size:16px">この施設を削除しますか？</h2>
+  <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6">利用者の施設欄は空欄になります。<br>この操作は元に戻せません。</p>
+  <div style="display:flex;gap:10px;justify-content:center">
+    <button class="btn" style="background:var(--bg);color:var(--muted);min-width:90px" onclick="closeModal('modal-delete-facility')">いいえ</button>
+    <button class="btn btn-danger-s" style="min-width:90px;font-weight:700" onclick="deleteFacility()">はい、削除</button>
+  </div>
+</div>
+</div>
+
+<!-- ===== スタッフ追加・編集モーダル ===== -->
+<div class="modal-overlay" id="modal-staff">
+<div class="modal" style="max-width:440px">
+  <h2 id="staff-modal-title">スタッフを追加</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div class="field"><label>氏名 *</label><input type="text" id="sf2-name" placeholder="例：吉川 浩史"></div>
+    <div class="field"><label>ふりがな</label><input type="text" id="sf2-kana" placeholder="例：ヨシカワ ヒロフミ"></div>
+  </div>
+  <div class="field"><label>役職</label>
+    <select id="sf2-role">
+      <option value="サービス管理責任者">サービス管理責任者（サビ管）</option>
+      <option value="世話人">世話人</option>
+      <option value="生活支援員">生活支援員</option>
+      <option value="管理者">管理者</option>
+      <option value="その他">その他</option>
+    </select>
+  </div>
+  <div class="field"><label>担当施設</label>
+    <select id="sf2-facility"></select>
+  </div>
+  <div class="field"><label>連絡先</label><input type="text" id="sf2-contact" placeholder="例：090-0000-0000"></div>
+  <div class="field"><label>備考</label><input type="text" id="sf2-note" placeholder="例：非常勤"></div>
+  <div class="modal-actions">
+    <button class="btn btn-danger-s btn-sm" id="btn-delete-staff" style="margin-right:auto;display:none" onclick="openDeleteStaffConfirm()">削除</button>
+    <button class="btn btn-cancel" onclick="closeModal('modal-staff')">キャンセル</button>
+    <button class="btn btn-primary" onclick="saveStaff()">保存</button>
+  </div>
+</div>
+</div>
+
+<!-- ===== スタッフ削除確認モーダル ===== -->
+<div class="modal-overlay" id="modal-delete-staff">
+<div class="modal" style="max-width:340px;text-align:center">
+  <div style="font-size:36px;margin-bottom:12px">🗑</div>
+  <h2 style="margin-bottom:8px;font-size:16px">このスタッフを削除しますか？</h2>
+  <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6">この操作は元に戻せません。</p>
+  <div style="display:flex;gap:10px;justify-content:center">
+    <button class="btn" style="background:var(--bg);color:var(--muted);min-width:90px" onclick="closeModal('modal-delete-staff')">いいえ</button>
+    <button class="btn btn-danger-s" style="min-width:90px;font-weight:700" onclick="deleteStaff()">はい、削除</button>
+  </div>
+</div>
+</div>
+
+<!-- ===== 利用者削除確認モーダル ===== -->
+<div class="modal-overlay" id="modal-delete-resident">
+<div class="modal" style="max-width:340px;text-align:center">
+  <div style="font-size:36px;margin-bottom:12px">🗑</div>
+  <h2 style="margin-bottom:8px;font-size:16px">この利用者を削除しますか？</h2>
+  <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6">実施ログも含めてすべて削除されます。<br>この操作は元に戻せません。</p>
+  <div style="display:flex;gap:10px;justify-content:center">
+    <button class="btn" style="background:var(--bg);color:var(--muted);min-width:90px" onclick="closeModal('modal-delete-resident')">いいえ</button>
+    <button class="btn btn-danger-s" style="min-width:90px;font-weight:700" onclick="deleteResident()">はい、削除</button>
+  </div>
+</div>
+</div>
+
+<!-- ===== 事業所削除確認モーダル ===== -->
+<div class="modal-overlay" id="modal-delete-agency">
+<div class="modal" style="max-width:340px;text-align:center">
+  <div style="font-size:36px;margin-bottom:12px">🗑</div>
+  <h2 style="margin-bottom:8px;font-size:16px">この事業所を削除しますか？</h2>
+  <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6">利用者の相談事業所欄が空欄になります。<br>この操作は元に戻せません。</p>
+  <div style="display:flex;gap:10px;justify-content:center">
+    <button class="btn" style="background:var(--bg);color:var(--muted);min-width:90px" onclick="closeModal('modal-delete-agency')">いいえ</button>
+    <button class="btn btn-danger-s" style="min-width:90px;font-weight:700" onclick="deleteAgency()">はい、削除</button>
+  </div>
+</div>
+</div>
+
+<!-- ===== ログ削除確認モーダル ===== -->
+<div class="modal-overlay" id="modal-delete-log">
+<div class="modal" style="max-width:340px;text-align:center">
+  <div style="font-size:36px;margin-bottom:12px">🗑</div>
+  <h2 style="margin-bottom:8px;font-size:16px">この実施記録を削除しますか？</h2>
+  <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6">この操作は元に戻せません。</p>
+  <div style="display:flex;gap:10px;justify-content:center">
+    <button class="btn" style="background:var(--bg);color:var(--muted);min-width:90px" onclick="closeModal('modal-delete-log')">いいえ</button>
+    <button class="btn btn-danger-s" style="min-width:90px;font-weight:700" onclick="deleteLog()">はい、削除</button>
+  </div>
+</div>
+</div>
+
+<!-- ===== 登録確認モーダル ===== -->
+<div class="modal-overlay" id="modal-register">
+<div class="modal" style="max-width:340px;text-align:center">
+  <div style="font-size:36px;margin-bottom:12px">✅</div>
+  <h2 style="margin-bottom:8px;font-size:16px">登録しますか？</h2>
+  <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6">①②③の入力内容をログに登録します。<br>登録後、入力データはクリアされます。</p>
+  <div style="display:flex;gap:10px;justify-content:center">
+    <button class="btn" style="background:var(--bg);color:var(--muted);min-width:90px" onclick="closeModal('modal-register')">いいえ</button>
+    <button class="btn btn-primary" style="min-width:90px;font-weight:700" onclick="registerComplete()">はい</button>
+  </div>
+</div>
+</div>
+
+<!-- ===== ログクリア確認モーダル ===== -->
+<div class="modal-overlay" id="modal-log-clear">
+<div class="modal" style="max-width:340px;text-align:center">
+  <div style="font-size:36px;margin-bottom:12px">🗑</div>
+  <h2 style="margin-bottom:8px;font-size:16px">完了ログをクリアしますか？</h2>
+  <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6">登録済みのすべての完了履歴が削除されます。<br>この操作は元に戻せません。</p>
+  <div style="text-align:left;margin-bottom:8px">
+    <label style="font-size:11px;color:var(--muted);font-weight:500;display:block;margin-bottom:5px">パスワードを入力して確認</label>
+    <input type="password" id="log-clear-password" placeholder="パスワードを入力"
+      style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-family:inherit;font-size:14px;outline:none;"
+      onkeydown="if(event.key==='Enter')execLogClear()">
+  </div>
+  <div id="log-clear-error" style="color:var(--accent);font-size:12px;margin-bottom:10px;display:none">パスワードが違います</div>
+  <div style="display:flex;gap:10px;justify-content:center">
+    <button class="btn" style="background:var(--bg);color:var(--muted);min-width:90px" onclick="closeModal('modal-log-clear');document.getElementById('log-clear-password').value='';document.getElementById('log-clear-error').style.display='none'">キャンセル</button>
+    <button class="btn btn-danger-s" style="min-width:90px;font-weight:700" onclick="execLogClear()">クリア実行</button>
+  </div>
+</div>
+</div>
+
+<!-- ===== 履歴モーダル ===== -->
+<div class="modal-overlay" id="modal-history">
+<div class="modal" style="max-width:560px">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+    <h2 style="margin:0" id="history-modal-title">📂 実施履歴</h2>
+    <button class="btn btn-sm btn-cancel" onclick="closeModal('modal-history')">✕ 閉じる</button>
+  </div>
+  <div id="history-list"></div>
+</div>
+</div>
+
+<!-- ===== 履歴詳細・編集モーダル ===== -->
+<div class="modal-overlay" id="modal-history-edit">
+<div class="modal" style="max-width:520px">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+    <span style="font-size:20px">📋</span>
+    <div>
+      <div style="font-size:11px;color:var(--muted)" id="he-sub"></div>
+      <h2 style="margin:0;font-size:15px" id="he-title">実施記録の確認・修正</h2>
+    </div>
+  </div>
+  <div id="he-body"></div>
+  <div class="modal-actions" style="margin-top:20px">
+    <button class="btn btn-danger-s btn-sm" onclick="openDeleteLogConfirm()" style="margin-right:auto">🗑 この記録を削除</button>
+    <button class="btn btn-cancel" onclick="closeModal('modal-history-edit')">キャンセル</button>
+    <button class="btn btn-primary" onclick="saveLogEdit()">登録</button>
+  </div>
+</div>
+</div>
+
+<script>
+// ==================== GAS API設定 ====================
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbx833AiuN3QFvVSqunOdyqJBLJ0bsFMqXGQQOalM-kGmfXQXObdlyIh2taIxXwV7oVThw/exec';
+
+// ローカルキャッシュ
+let _cache = { residents:[], logs:[], agencies:[] };
+
+function showLoading(msg='読み込み中…'){
+  document.getElementById('loading-overlay').style.display='flex';
+  document.getElementById('loading-msg').textContent=msg;
+}
+function hideLoading(){
+  document.getElementById('loading-overlay').style.display='none';
+}
+
+// JSONP方式でGASからデータ取得
+function sheetGet(sheetName){
+  return new Promise((resolve, reject) => {
+    const cbName = '__gasCallback_' + sheetName + '_' + Date.now();
+    const script  = document.createElement('script');
+
+    const timer = setTimeout(() => {
+      cleanup();
+      reject(new Error(sheetName + ' タイムアウト（GASのデプロイを確認してください）'));
+    }, 20000);
+
+    function cleanup(){
+      clearTimeout(timer);
+      delete window[cbName];
+      if(script.parentNode) script.parentNode.removeChild(script);
+    }
+
+    window[cbName] = (json) => {
+      cleanup();
+      if(json && json.ok) resolve(json.data || []);
+      else reject(new Error((json && json.error) || '不明なエラー'));
+    };
+
+    script.src = GAS_URL + '?sheet=' + encodeURIComponent(sheetName) + '&callback=' + cbName + '&t=' + Date.now();
+    script.onerror = () => { cleanup(); reject(new Error(sheetName + ' スクリプト読み込みエラー')); };
+    document.head.appendChild(script);
+  });
+}
+
+// GASにデータを保存（no-cors POST）
+async function gasPost(sheet, data){
+  try {
+    await fetch(GAS_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ sheet, data }),
+    });
+  } catch(e) {}
+}
+
+// ---- データ読み込み（キャッシュ）----
+function loadResidents(){ return _cache.residents || []; }
+function loadLogs()     { return _cache.logs      || []; }
+function loadAgencies() { return _cache.agencies  || []; }
+function loadFacilities(){ return _cache.facilities || []; }
+function loadStaff()    { return _cache.staff     || []; }
+
+// ---- データ保存（キャッシュ更新 + GAS非同期保存）----
+function saveResidents(d){ _cache.residents=d; gasPost('residents',d); }
+function saveLogs(d)     { _cache.logs=d;      gasPost('logs',d); }
+function saveAgencies(d) { _cache.agencies=d;  gasPost('agencies',d); }
+function saveFacilities(d){ _cache.facilities=d; gasPost('facilities',d); }
+function saveStaffData(d){ _cache.staff=d;     gasPost('staff',d); }
+
+// ---- 初回全データ読み込み ----
+async function initData(){
+  showLoading('データを読み込み中…');
+  try {
+    const [residents, logs, agencies, facilities, staff] = await Promise.all([
+      sheetGet('residents'),
+      sheetGet('logs'),
+      sheetGet('agencies'),
+      sheetGet('facilities'),
+      sheetGet('staff'),
+    ]);
+    _cache.residents  = residents;
+    _cache.logs       = logs;
+    _cache.agencies   = agencies;
+    _cache.facilities = facilities;
+    _cache.staff      = staff;
+    // 施設マスターが空の場合はデフォルトを投入
+    if(_cache.facilities.length === 0){
+      _cache.facilities = [
+        {id:1, name:'ハイム1',    address:'', tel:'', note:''},
+        {id:2, name:'ハイム2',    address:'', tel:'', note:''},
+        {id:3, name:'川口江戸袋', address:'', tel:'', note:''},
+        {id:4, name:'草加駅前',   address:'', tel:'', note:''},
+      ];
+      saveFacilities(_cache.facilities);
+    }
+  } catch(e) {
+    console.warn('読み込みエラー:', e.message);
+    const msg = document.getElementById('loading-msg');
+    if(msg) msg.textContent = '読み込みエラー: ' + e.message;
+    await new Promise(r => setTimeout(r, 4000));
+    _cache = { residents:[], logs:[], agencies:[], facilities:[
+      {id:1,name:'ハイム1',address:'',tel:'',note:''},
+      {id:2,name:'ハイム2',address:'',tel:'',note:''},
+      {id:3,name:'川口江戸袋',address:'',tel:'',note:''},
+      {id:4,name:'草加駅前',address:'',tel:'',note:''},
+    ], staff:[]};
+  } finally {
+    hideLoading();
+  }
+}
+
+function calcDays(last,cycle){
+  const next=new Date(last); next.setMonth(next.getMonth()+parseInt(cycle));
+  const t=new Date(); t.setHours(0,0,0,0);
+  return Math.floor((next-t)/86400000);
+}
+function getStatus(d){ return d<=7?'danger':d<=30?'warn':'ok'; }
+function statusLabel(d){ return d<0?'期限超過':d<=7?'今すぐ対応':d<=30?'もうすぐ':'余裕あり'; }
+function nextDateStr(last,cycle){ const d=new Date(last); d.setMonth(d.getMonth()+parseInt(cycle)); return d.toISOString().slice(0,10).replace(/-/g,'/'); }
+function isInProgress(r){ const f=r.flow||{}; return !!f.step1&&!f.step4; }
+function getFlow(r){ return r.flow||{step1:null,step2:null,step3:null,step4:null}; }
+
+// モーダルを閉じる（どこからでも呼べるよう先頭に定義）
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+// ==================== ページ ====================
+function showPage(id,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.page-nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  el.classList.add('active');
+  if(id==='dashboard') renderDashboard();
+  if(id==='residents') renderResidents();
+  if(id==='facilities') renderFacilities();
+  if(id==='agencies') renderAgencies();
+  if(id==='staff') renderStaff();
+  if(id==='logs') renderLogs();
+}
+
+// ==================== ダッシュボード ====================
+let currentFilter='all';
+let sortKey='days', sortDir='asc';
+
+function setSort(key, el){
+  if(sortKey===key){ sortDir=sortDir==='asc'?'desc':'asc'; }
+  else { sortKey=key; sortDir='asc'; }
+  // アイコン更新
+  document.querySelectorAll('#page-dashboard thead th.sortable').forEach(th=>{
+    th.classList.remove('sort-asc','sort-desc');
+    th.querySelector('.sort-icon').textContent='⇅';
+  });
+  el.classList.add(sortDir==='asc'?'sort-asc':'sort-desc');
+  el.querySelector('.sort-icon').textContent='';
+  renderDashboard();
+}
+
+function setFilter(f,el){
+  currentFilter=f;
+  document.querySelectorAll('#page-dashboard .filter-tabs .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderDashboard();
+}
+
+function renderDashboard(){
+  const residents=loadResidents();
+  let rows=residents.map(r=>({...r,days:calcDays(r.last,r.cycle)}));
+
+  // デフォルトはkana順、ソート指定がある場合はそちら優先
+  rows.sort((a,b)=>{
+    let va,vb;
+    if(sortKey==='name'){ va=a.kana||a.name; vb=b.kana||b.name; return sortDir==='asc'?va.localeCompare(vb,'ja'):vb.localeCompare(va,'ja'); }
+    if(sortKey==='facility'){ va=a.facility; vb=b.facility; return sortDir==='asc'?va.localeCompare(vb,'ja'):vb.localeCompare(va,'ja'); }
+    if(sortKey==='last'){ va=a.last; vb=b.last; return sortDir==='asc'?va.localeCompare(vb):vb.localeCompare(va); }
+    if(sortKey==='nextDate'){ va=nextDateStr(a.last,a.cycle); vb=nextDateStr(b.last,b.cycle); return sortDir==='asc'?va.localeCompare(vb):vb.localeCompare(va); }
+    if(sortKey==='days'){ va=a.days; vb=b.days; return sortDir==='asc'?va-vb:vb-va; }
+    // デフォルト：kana順
+    const ka=a.kana||a.name, kb=b.kana||b.name;
+    return ka.localeCompare(kb,'ja');
+  });
+
+  let cD=0,cW=0,cO=0,cP=0;
+  rows.forEach(r=>{
+    const s=getStatus(r.days);
+    if(s==='danger')cD++; else if(s==='warn')cW++; else cO++;
+    if(isInProgress(r))cP++;
+  });
+  document.getElementById('cnt-danger').textContent=cD;
+  document.getElementById('cnt-warn').textContent=cW;
+  document.getElementById('cnt-ok').textContent=cO;
+  document.getElementById('cnt-progress').textContent=cP;
+
+  const filtered=rows.filter(r=>{
+    const s=getStatus(r.days);
+    const ip=isInProgress(r);
+    return currentFilter==='all'||(currentFilter==='progress'?ip:s===currentFilter);
+  });
+
+  const tbody=document.getElementById('dash-tbody');
+  tbody.innerHTML='';
+  document.getElementById('dash-empty').style.display=filtered.length?'none':'block';
+
+  filtered.forEach((r,idx)=>{
+    const s=getStatus(r.days);
+    const daysText=r.days<0
+      ?`<span class="days-chip danger">${Math.abs(r.days)}日超過</span>`
+      :`<span class="days-chip ${s}">あと${r.days}日</span>`;
+    const tr=document.createElement('tr');
+    if(s==='danger')tr.className='row-danger';
+    else if(s==='warn')tr.className='row-warn';
+    tr.innerHTML=`
+      <td style="text-align:center;font-size:11px;color:var(--muted);font-weight:600">${idx+1}</td>
+      <td><strong>${r.name}</strong><br><span style="font-size:10px;color:var(--muted)">${r.kana||''}</span>${r.note?`<br><span style="font-size:10px;color:var(--muted)">${r.note}</span>`:''}</td>
+      <td>${r.facility}</td>
+      <td>${r.sabikan?`<span style="font-size:12px">${r.sabikan}</span>`:`<span style="color:var(--muted);font-size:11px">―</span>`}</td>
+      <td style="font-size:12px;color:var(--muted)">${r.last.replace(/-/g,'/')}</td>
+      <td>${nextDateStr(r.last,r.cycle)}</td>
+      <td>${daysText}</td>
+      <td>${buildStepBar(r)}</td>
+      <td>${buildRegisterBtn(r)}</td>
+      <td><button class="btn btn-sm" style="background:#f3e8fd;color:#7b3fa0;white-space:nowrap" onclick="openHistoryModal(${r.id})">📂 履歴</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // スマホ用カード描画
+  renderDashboardCards(filtered);
+}
+
+// スマホ用ダッシュボードカード描画
+function renderDashboardCards(filtered){
+  const el = document.getElementById('dash-cards-sp');
+  if(!el) return;
+  if(!filtered.length){ el.innerHTML='<div class="empty">該当する利用者がいません</div>'; return; }
+  el.innerHTML = filtered.map((r,idx)=>{
+    const s=getStatus(r.days);
+    const daysText=r.days<0
+      ?`<span class="days-chip danger">${Math.abs(r.days)}日超過</span>`
+      :`<span class="days-chip ${s}">あと${r.days}日</span>`;
+    return `
+      <div class="dash-sp-card ${s==='danger'?'row-danger':s==='warn'?'row-warn':'row-ok'}">
+        <div class="dash-sp-card-header">
+          <div>
+            <div class="dash-sp-name">${idx+1}. ${r.name}</div>
+            ${r.kana?`<div class="dash-sp-kana">${r.kana}</div>`:''}
+          </div>
+          <div>${daysText}</div>
+        </div>
+        <div class="dash-sp-meta">
+          <span>🏠 ${r.facility||'―'}</span>
+          <span>👤 ${r.sabikan||'―'}</span>
+          <span>📅 次回：${nextDateStr(r.last,r.cycle)}</span>
+        </div>
+        <div>${buildStepBar(r)}</div>
+        <div class="dash-sp-footer">
+          ${buildRegisterBtn(r)}
+          <button class="btn btn-sm" style="background:#f3e8fd;color:#7b3fa0;white-space:nowrap" onclick="openHistoryModal(${r.id})">📂 履歴</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function buildStepBar(r){
+  const f=getFlow(r);
+  const steps=[
+    {key:'step1',label:'①実施',  icon:'📋'},
+    {key:'step2',label:'②原案',  icon:'✏️'},
+    {key:'step3',label:'③カンファ',icon:'👥'},
+    {key:'step4',label:'④郵送',  icon:'📮'},
+  ];
+  let html=`<div class="step-bar">`;
+  steps.forEach((st,i)=>{
+    const done=!!f[st.key];
+    const isNext=!done&&(i===0||!!f[steps[i-1].key]);
+    const cls=done?'done':isNext?'active-step':'';
+    html+=`<div class="step-node">
+      <div class="step-circle ${cls}" onclick="openStepModal(${r.id},'${st.key}')" title="${done?'タップで修正':'タップで完了記録'}">
+        ${done?'✓':st.icon}
+      </div>
+      <div class="step-label ${cls}">${st.label}${done&&f[st.key]?.date?`<br>${f[st.key].date.slice(5).replace('-','/')}`:''}</div>
+    </div>`;
+    if(i<steps.length-1) html+=`<div class="step-line ${done?'done':''}"></div>`;
+  });
+  return html+'</div>';
+}
+
+function buildRegisterBtn(r){
+  const f=getFlow(r);
+  const allDone=!!f.step1&&!!f.step2&&!!f.step3&&!!f.step4;
+  const count=[f.step1,f.step2,f.step3,f.step4].filter(Boolean).length;
+  return allDone
+    ?`<button class="btn btn-sm" style="background:var(--ok);color:#fff;white-space:nowrap;font-weight:700;min-width:72px" onclick="openRegisterConfirm(${r.id})">✅ 登録</button>`
+    :`<button class="btn btn-sm" disabled style="background:#e8e8e8;color:#aaa;white-space:nowrap;cursor:not-allowed;min-width:72px" title="①②③④すべて完了後に押せます">${count}/4 完了</button>`;
+}
+
+// ==================== ステップモーダル ====================
+let stepCtx={rid:null,stepKey:null};
+const STEP_META={
+  step1:{label:'①モニタリング実施',icon:'📋',cls:'s1',fields:`
+    <div class="field"><label>実施日 *</label><input type="date" id="sf-date"></div>
+    <div class="field">
+      <label>次回実施周期 *</label>
+      <select id="sf-next-cycle">
+        <option value="1">1ヶ月後</option>
+        <option value="3">3ヶ月後</option>
+        <option value="6" selected>6ヶ月後（標準）</option>
+      </select>
+    </div>
+    <div class="field"><label>実施メモ（任意）</label><textarea id="sf-memo" rows="2" placeholder="状況・気になった点など"></textarea></div>`},
+  step2:{label:'②原案作成',icon:'✏️',cls:'s2',fields:`
+    <div class="field"><label>作成日 *</label><input type="date" id="sf-date"></div>
+    <div class="field"><label>作成者</label><input type="text" id="sf-author" placeholder="例：吉川 浩史"></div>
+    <div class="field">
+      <label>代表チェック</label>
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg);border-radius:8px;border:1.5px solid var(--border);margin-top:2px">
+        <input type="checkbox" id="sf-checked" style="width:18px;height:18px;cursor:pointer;accent-color:var(--ok)">
+        <label for="sf-checked" style="font-size:13px;cursor:pointer;color:var(--text);font-weight:500;margin:0">確認済み ✅</label>
+      </div>
+    </div>
+    <div class="field"><label>メモ（任意）</label><textarea id="sf-memo" rows="2" placeholder="変更点・特記事項など"></textarea></div>`},
+  step3:{label:'③利用者カンファレンス（3名参加）',icon:'👥',cls:'s3',fields:`
+    <div class="field"><label>実施日 *</label><input type="date" id="sf-date"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+      <div class="field"><label>参加者①（本人）</label><input type="text" id="sf-p1"></div>
+      <div class="field"><label>参加者②（サビ管）</label><input type="text" id="sf-p2" placeholder="サビ管名"></div>
+      <div class="field"><label>参加者③（世話人等）</label><input type="text" id="sf-p3" placeholder=""></div>
+    </div>
+    <div class="field"><label>カンファレンスメモ（任意）</label><textarea id="sf-memo" rows="3" placeholder="話し合った内容など"></textarea></div>`},
+  step4:{label:'④個別支援計画書 郵送',icon:'📮',cls:'s4',fields:`
+    <div class="field"><label>郵送日 *</label><input type="date" id="sf-date"></div>
+    <div class="field"><label>送付先</label><input type="text" id="sf-dest" placeholder="例：ちいきケア草加 田中様"></div>
+    <div class="field"><label>メモ（任意）</label><textarea id="sf-memo" rows="2" placeholder="送付部数・方法など"></textarea></div>`},
+};
+
+function openStepModal(rid,stepKey){
+  const residents=loadResidents();
+  const r=residents.find(x=>x.id===rid);
+  if(!r) return;
+  const f=getFlow(r);
+  const meta=STEP_META[stepKey];
+  const saved=f[stepKey]||null;
+
+  stepCtx={rid,stepKey};
+  document.getElementById('step-modal-icon').textContent=meta.icon;
+  document.getElementById('step-modal-icon').className=`step-modal-icon ${meta.cls}`;
+  document.getElementById('step-modal-sub').textContent=r.name+' / '+r.facility;
+  document.getElementById('step-modal-title').textContent=saved?`${meta.label}（修正）`:meta.label;
+  document.getElementById('step-modal-body').innerHTML=meta.fields;
+
+  // DOMが確定してから値をセット
+  setTimeout(()=>{
+    const dateEl=document.getElementById('sf-date');
+    if(dateEl) dateEl.value=saved?.date||new Date().toISOString().slice(0,10);
+
+    if(stepKey==='step1'){
+      const cycleEl=document.getElementById('sf-next-cycle');
+      if(cycleEl){
+        const cur=String(saved?.nextCycle||r.cycle);
+        cycleEl.value=[...cycleEl.options].find(o=>o.value===cur)?cur:'6';
+      }
+      const memoEl=document.getElementById('sf-memo');
+      if(memoEl) memoEl.value=saved?.memo||'';
+    }
+    if(stepKey==='step2'){
+      const authorEl=document.getElementById('sf-author');
+      if(authorEl) authorEl.value=saved?.author||'';
+      const checkedEl=document.getElementById('sf-checked');
+      if(checkedEl) checkedEl.checked=saved?.checked||false;
+      const memoEl=document.getElementById('sf-memo'); if(memoEl) memoEl.value=saved?.memo||'';
+    }
+    if(stepKey==='step3'){
+      const p1=document.getElementById('sf-p1');
+      const p2=document.getElementById('sf-p2');
+      const p3=document.getElementById('sf-p3');
+      const memoEl=document.getElementById('sf-memo');
+      if(p1) p1.value=saved?.participants?.[0]||(saved?'':r.name);
+      if(p2) p2.value=saved?.participants?.[1]||(saved?'':r.sabikan||'');
+      if(p3) p3.value=saved?.participants?.[2]||'';
+      if(memoEl) memoEl.value=saved?.memo||'';
+    }
+    if(stepKey==='step4'){
+      const dest=document.getElementById('sf-dest');
+      const memoEl=document.getElementById('sf-memo');
+      if(dest) dest.value=saved?.dest||(saved?'':`${r.agency||''} ${r.planner||''}`.trim());
+      if(memoEl) memoEl.value=saved?.memo||'';
+    }
+  }, 0);
+
+  document.getElementById('modal-step').classList.add('open');
+}
+
+function saveStep(){
+  const {rid,stepKey}=stepCtx;
+  const dateEl=document.getElementById('sf-date');
+  if(!dateEl||!dateEl.value){ alert('日付を入力してください'); return; }
+  const residents=loadResidents();
+  const r=residents.find(x=>x.id===rid);
+  if(!r) return;
+  const f=getFlow(r);
+  const entry={date:dateEl.value};
+  if(stepKey==='step1'){
+    entry.memo=document.getElementById('sf-memo')?.value||'';
+    const nextCycle=parseInt(document.getElementById('sf-next-cycle')?.value||'6');
+    entry.nextCycle=nextCycle;
+    r.cycle=nextCycle;
+    r.last=entry.date;
+  } else if(stepKey==='step2'){
+    entry.author=document.getElementById('sf-author')?.value||'';
+    entry.checked=document.getElementById('sf-checked')?.checked||false;
+    entry.memo=document.getElementById('sf-memo')?.value||'';
+  } else if(stepKey==='step3'){
+    entry.participants=[document.getElementById('sf-p1')?.value||'',document.getElementById('sf-p2')?.value||'',document.getElementById('sf-p3')?.value||''].filter(Boolean);
+    entry.memo=document.getElementById('sf-memo')?.value||'';
+  } else if(stepKey==='step4'){
+    entry.dest=document.getElementById('sf-dest')?.value||'';
+    entry.memo=document.getElementById('sf-memo')?.value||'';
+  }
+  f[stepKey]=entry;
+  r.flow=f;
+  saveResidents(residents);
+  closeModal('modal-step');
+  renderDashboard();
+}
+
+let registerTargetId=null;
+
+function openRegisterConfirm(rid){
+  registerTargetId=rid;
+  document.getElementById('modal-register').classList.add('open');
+}
+
+function registerComplete(){
+  const rid=registerTargetId;
+  closeModal('modal-register');
+  const residents=loadResidents();
+  const r=residents.find(x=>x.id===rid);
+  if(!r) return;
+  const f=getFlow(r);
+  if(!f.step1||!f.step2||!f.step3||!f.step4){ alert('①②③④がすべて完了していません'); return; }
+  const logs=loadLogs();
+  logs.push({
+    id:Date.now(),residentId:r.id,residentName:r.name,facility:r.facility,
+    agency:r.agency,planner:r.planner,sabikan:r.sabikan,
+    completedAt:f.step4.date,
+    flow:JSON.parse(JSON.stringify(f)),
+  });
+  saveLogs(logs);
+  r.flow={step1:null,step2:null,step3:null,step4:null};
+  saveResidents(residents);
+  renderDashboard();
+}
+
+// ==================== 利用者管理 ====================
+let editResidentId=null;
+
+function openAddModal(){
+  editResidentId=null;
+  document.getElementById('edit-modal-title').textContent='利用者を追加';
+  ['f-name','f-kana','f-sabikan','f-note'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-facility').value='ハイム1';
+  document.getElementById('f-last').value=new Date().toISOString().slice(0,10);
+  document.getElementById('f-cycle').value='6';
+  buildFacilitySelect('');
+  buildSabikanSelect('');
+  buildAgencySelect('','');
+  renderMonitoringRows([]);
+  document.getElementById('btn-delete-resident').style.display='none';
+  document.getElementById('modal-edit').classList.add('open');
+}
+
+function openEditModal(id){
+  const r=loadResidents().find(x=>x.id===id);
+  if(!r) return;
+  editResidentId=id;
+  document.getElementById('edit-modal-title').textContent='利用者情報を編集';
+  document.getElementById('f-name').value=r.name;
+  document.getElementById('f-kana').value=r.kana||'';
+  document.getElementById('f-facility').value=r.facility;
+  document.getElementById('f-last').value=r.last;
+  document.getElementById('f-cycle').value=String(r.cycle);
+  document.getElementById('f-agency').value=r.agency||'';
+  document.getElementById('f-planner').value=r.planner||'';
+  document.getElementById('f-sabikan').value=r.sabikan||'';
+  document.getElementById('f-note').value=r.note||'';
+  buildFacilitySelect(r.facility||'');
+  buildSabikanSelect(r.sabikan||'');
+  buildAgencySelect(r.agency||'', r.planner||'');
+  renderMonitoringRows(r.monitoringSchedule||[]);
+  document.getElementById('btn-delete-resident').style.display='inline-block';
+  document.getElementById('modal-edit').classList.add('open');
+}
+
+function saveResident(){
+  const name=document.getElementById('f-name').value.trim();
+  const kana=document.getElementById('f-kana').value.trim();
+  const last=document.getElementById('f-last').value;
+  if(!name||!last){ alert('利用者名と前回実施日は必須です'); return; }
+  const monitoringSchedule=collectMonitoringRows();
+  const data={name,kana,facility:document.getElementById('f-facility').value,last,cycle:parseInt(document.getElementById('f-cycle').value),agency:document.getElementById('f-agency').value,planner:document.getElementById('f-planner').value,sabikan:document.getElementById('f-sabikan').value,note:document.getElementById('f-note').value.trim(),monitoringSchedule};
+  const residents=loadResidents();
+  if(editResidentId!==null){
+    const idx=residents.findIndex(x=>x.id===editResidentId);
+    if(idx>-1) residents[idx]={...residents[idx],...data};
+  } else {
+    const newId=residents.length?Math.max(...residents.map(x=>x.id))+1:1;
+    residents.push({id:newId,...data,flow:{step1:null,step2:null,step3:null}});
+  }
+  saveResidents(residents);
+  closeModal('modal-edit');
+  renderDashboard();
+  renderResidents();
+}
+
+function openDeleteResidentConfirm(){
+  document.getElementById('modal-delete-resident').classList.add('open');
+}
+
+function deleteResident(){
+  saveResidents(loadResidents().filter(x=>x.id!==editResidentId));
+  saveLogs(loadLogs().filter(x=>x.residentId!==editResidentId));
+  closeModal('modal-delete-resident');
+  closeModal('modal-edit');
+  renderDashboard();
+  renderResidents();
+}
+
+let resSortKey='kana', resSortDir='asc';
+
+function setResSort(key, el){
+  if(resSortKey===key){ resSortDir=resSortDir==='asc'?'desc':'asc'; }
+  else { resSortKey=key; resSortDir='asc'; }
+  document.querySelectorAll('#page-residents thead th.sortable').forEach(th=>{
+    th.classList.remove('sort-asc','sort-desc');
+    const icon=th.querySelector('.res-sort-icon');
+    if(icon) icon.textContent='⇅';
+  });
+  el.classList.add(resSortDir==='asc'?'sort-asc':'sort-desc');
+  const icon=el.querySelector('.res-sort-icon');
+  if(icon) icon.textContent='';
+  renderResidents();
+}
+
+function renderResidents(){
+  const residents=loadResidents();
+  const search=document.getElementById('res-search').value.trim().toLowerCase();
+  const filtered=residents
+    .filter(r=>!search||r.name.includes(search)||(r.kana||'').includes(search)||r.facility.includes(search))
+    .sort((a,b)=>{
+      let va,vb;
+      if(resSortKey==='kana'){ va=a.kana||a.name; vb=b.kana||b.name; return resSortDir==='asc'?va.localeCompare(vb,'ja'):vb.localeCompare(va,'ja'); }
+      if(resSortKey==='facility'){ va=a.facility; vb=b.facility; return resSortDir==='asc'?va.localeCompare(vb,'ja'):vb.localeCompare(va,'ja'); }
+      if(resSortKey==='last'){ va=a.last; vb=b.last; return resSortDir==='asc'?va.localeCompare(vb):vb.localeCompare(va); }
+      if(resSortKey==='nextDate'){ va=nextDateStr(a.last,a.cycle); vb=nextDateStr(b.last,b.cycle); return resSortDir==='asc'?va.localeCompare(vb):vb.localeCompare(va); }
+      va=a.kana||a.name; vb=b.kana||b.name; return va.localeCompare(vb,'ja');
+    });
+  const tbody=document.getElementById('res-tbody');
+  tbody.innerHTML='';
+  document.getElementById('res-empty').style.display=filtered.length?'none':'block';
+  filtered.forEach((r,idx)=>{
+    const days=calcDays(r.last,r.cycle);
+    const s=getStatus(days);
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td style="text-align:center;font-size:11px;color:var(--muted);font-weight:600">${idx+1}</td>
+      <td><strong>${r.name}</strong><br><span style="font-size:10px;color:var(--muted)">${r.kana||''}</span></td>
+      <td>${r.facility}</td>
+      <td>${r.agency?`<span style="font-size:10px;color:var(--muted)">${r.agency}</span>${r.planner?`<br><span style="font-size:13px;font-weight:500">${r.planner}</span>`:''}` :`<span style="color:var(--muted)">―</span>`}</td>
+      <td>${r.sabikan||'<span style="color:var(--muted)">―</span>'}</td>
+      <td>${r.last.replace(/-/g,'/')}</td>
+      <td><span class="badge ${s}">${nextDateStr(r.last,r.cycle)}</span></td>
+      <td>${r.cycle}ヶ月</td>
+      <td style="font-size:11px;line-height:1.8">${formatMonitoringSchedule(r.monitoringSchedule)}</td>
+      <td style="font-size:11px;color:var(--muted)">${r.note||''}</td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-sm" style="background:#eef2ff;color:var(--primary)" onclick="openEditModal(${r.id})">編集</button>
+        <button class="btn btn-sm" style="background:#f3e8fd;color:#7b3fa0;margin-left:4px" onclick="openHistoryModal(${r.id})">📂 履歴</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// ==================== ログ ====================
+let logView='all';
+function setLogView(v,el){
+  logView=v;
+  document.querySelectorAll('#page-logs .filter-tabs .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('log-all-view').style.display=v==='all'?'block':'none';
+  document.getElementById('log-resident-view').style.display=v==='resident'?'block':'none';
+  renderLogs();
+}
+function renderLogs(){ logView==='all'?renderAllLogs():renderResidentLogs(); }
+
+const STEP_NAMES={step1:'①モニタリング実施',step2:'②原案作成',step3:'③カンファレンス',step4:'④計画書郵送'};
+const STEP_CLS={step1:'s1',step2:'s2',step3:'s3',step4:'s4'};
+
+function renderAllLogs(){
+  const logs=loadLogs();
+  const residents=loadResidents();
+  const el=document.getElementById('log-all-view');
+
+  const inProgress=residents.filter(r=>isInProgress(r));
+  const inProgressHtml=inProgress.length===0?'<div class="empty">進行中の案件はありません</div>'
+    :inProgress.map(r=>{
+      const f=getFlow(r);
+      return Object.entries(f).filter(([,v])=>v).map(([k,v])=>`
+        <div class="log-card ${STEP_CLS[k]}">
+          <div class="log-meta">${v.date?.replace(/-/g,'/')||''}</div>
+          <div class="log-name">${r.name} <span style="font-size:11px;color:var(--muted);font-weight:400">${r.facility}</span>
+            <span class="log-step-tag ${STEP_CLS[k]}" style="margin-left:6px">${STEP_NAMES[k]}</span>
+          </div>
+          ${v.memo?`<div class="log-memo">💬 ${v.memo}</div>`:''}
+          ${v.participants?.length?`<div class="log-memo">👥 参加：${v.participants.join('・')}</div>`:''}
+        </div>`).join('');
+    }).join('');
+
+  const completedHtml=logs.length===0?'<div class="empty">完了ログがありません</div>'
+    :[...logs].reverse().map(l=>`
+      <div class="log-card s3">
+        <div class="log-meta">${l.completedAt.replace(/-/g,'/')} 全工程完了</div>
+        <div class="log-name">${l.residentName} <span style="font-size:11px;color:var(--muted);font-weight:400">${l.facility}</span></div>
+        <div class="log-memo">🏢 ${l.agency||'相談員未設定'} ${l.planner?'／'+l.planner:''}</div>
+        ${l.flow.step1?.date?`<div class="log-memo">📋 実施日：${l.flow.step1.date.replace(/-/g,'/')}${l.flow.step1.memo?' ／ '+l.flow.step1.memo:''}</div>`:''}
+        ${l.flow.step2?.date?`<div class="log-memo">✏️ 原案作成：${l.flow.step2.date.replace(/-/g,'/')}${l.flow.step2.author?' ／ '+l.flow.step2.author:''}　代表チェック：${l.flow.step2.checked?'<span style="color:var(--ok);font-weight:700">✅ 済</span>':'<span style="color:var(--muted)">―</span>'}</div>`:''}
+        ${l.flow.step3?.participants?.length?`<div class="log-memo">👥 CF参加：${l.flow.step3.participants.join('・')}</div>`:''}
+        ${l.flow.step4?.dest?`<div class="log-memo">📮 送付先：${l.flow.step4.dest}</div>`:''}
+      </div>`).join('');
+
+  el.innerHTML=`
+    <div class="log-section"><h3>🔄 進行中の案件</h3>${inProgressHtml}</div>
+    <div class="log-section"><h3>✅ 完了履歴</h3>${completedHtml}</div>`;
+}
+
+function renderResidentLogs(){
+  const residents=loadResidents();
+  const logs=loadLogs();
+  const el=document.getElementById('log-resident-view');
+  if(!residents.length){ el.innerHTML='<div class="empty">利用者が登録されていません</div>'; return; }
+
+  el.innerHTML=residents.map(r=>{
+    const rLogs=logs.filter(l=>l.residentId===r.id);
+    const f=getFlow(r);
+    const current=Object.entries(f).filter(([,v])=>v).map(([k,v])=>({step:k,date:v.date,memo:v.memo,participants:v.participants,dest:v.dest,current:true}));
+    const hist=rLogs.flatMap(l=>
+      Object.entries(l.flow).filter(([,v])=>v).map(([k,v])=>({step:k,date:v.date,memo:v.memo,participants:v.participants,dest:v.dest,current:false}))
+    );
+    const all=[...current,...hist].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+
+    const tl=all.length===0?'<div style="font-size:12px;color:var(--muted);padding:6px 0">記録なし</div>'
+      :all.map(item=>`
+        <div class="timeline-item">
+          <div class="tl-dot ${STEP_CLS[item.step]}"></div>
+          <div class="tl-content">
+            <div class="tl-date">${item.date?.replace(/-/g,'/')||''}${item.current?' <span style="font-size:10px;color:var(--step2);font-weight:700">進行中</span>':''}</div>
+            <div class="tl-label">${STEP_NAMES[item.step]}</div>
+            ${item.memo?`<div class="tl-memo">💬 ${item.memo}</div>`:''}
+            ${item.participants?.length?`<div class="tl-memo">👥 ${item.participants.join('・')}</div>`:''}
+            ${item.dest?`<div class="tl-memo">📮 ${item.dest}</div>`:''}
+          </div>
+        </div>`).join('');
+
+    return `
+      <div class="resident-log-block">
+        <div class="resident-log-header">
+          <h4>${r.name} <span style="font-size:11px;font-weight:400;color:var(--muted)">${r.facility}</span></h4>
+          <span style="font-size:11px;color:var(--muted)">${r.agency||''} ${r.planner?'／'+r.planner:''}</span>
+        </div>
+        <div class="resident-log-body">${tl}</div>
+      </div>`;
+  }).join('');
+}
+
+// ==================== 計画相談モニタリング予定 ====================
+// データ形式: [{year:'R8', months:[5,11]}, {year:'R9', months:[3]}]
+
+function renderMonitoringRows(schedule){
+  const wrap = document.getElementById('f-monitoring-wrap');
+  if(!wrap) return;
+  wrap.innerHTML = '';
+  (schedule.length ? schedule : []).forEach((row, i) => {
+    wrap.appendChild(createMonitoringBlock(i, row));
+  });
+}
+
+function createMonitoringBlock(i, row){
+  const div = document.createElement('div');
+  div.className = 'monitoring-year-block';
+  div.id = `mrow-${i}`;
+
+  // 年度セレクト（R6〜R15）
+  const currentYear = new Date().getFullYear();
+  const reiwaBase = 2018;
+  let yearOpts = '';
+  for(let y = currentYear - reiwaBase - 1; y <= currentYear - reiwaBase + 5; y++){
+    if(y < 1) continue;
+    const label = `R${y}年`;
+    yearOpts += `<option value="R${y}" ${row.year===`R${y}`?'selected':''}>${label}</option>`;
+  }
+
+  // 月チップ
+  let monthChips = '';
+  for(let m = 1; m <= 12; m++){
+    const sel = (row.months||[]).includes(m) ? 'selected' : '';
+    monthChips += `<span class="month-chip ${sel}" onclick="toggleMonth(${i},${m},this)">${m}月</span>`;
+  }
+
+  div.innerHTML = `
+    <div class="monitoring-year-header">
+      <select id="myear-${i}">${yearOpts}</select>
+      <span style="font-size:12px;color:var(--muted)">予定月：</span>
+      <button class="planner-remove-btn" onclick="removeMonitoringRow(${i})" title="削除">✕</button>
+    </div>
+    <div class="monitoring-months" id="mmonths-${i}">${monthChips}</div>
+  `;
+  return div;
+}
+
+function addMonitoringRow(){
+  const wrap = document.getElementById('f-monitoring-wrap');
+  const i = wrap.querySelectorAll('.monitoring-year-block').length;
+  const currentYear = new Date().getFullYear();
+  const reiwa = currentYear - 2018;
+  wrap.appendChild(createMonitoringBlock(i, {year:`R${reiwa}`, months:[]}));
+}
+
+function toggleMonth(rowIdx, month, el){
+  el.classList.toggle('selected');
+}
+
+function removeMonitoringRow(i){
+  const el = document.getElementById(`mrow-${i}`);
+  if(el) el.remove();
+}
+
+function collectMonitoringRows(){
+  const wrap = document.getElementById('f-monitoring-wrap');
+  if(!wrap) return [];
+  const blocks = wrap.querySelectorAll('.monitoring-year-block');
+  const result = [];
+  blocks.forEach((block, i) => {
+    const yearEl = document.getElementById(`myear-${i}`);
+    if(!yearEl) return;
+    const year = yearEl.value;
+    const months = [];
+    block.querySelectorAll('.month-chip.selected').forEach(chip => {
+      const m = parseInt(chip.textContent);
+      if(!isNaN(m)) months.push(m);
+    });
+    months.sort((a,b)=>a-b);
+    if(year) result.push({year, months});
+  });
+  return result;
+}
+
+function formatMonitoringSchedule(schedule){
+  if(!schedule || !schedule.length) return '―';
+  return schedule.map(s=>`<span style="display:inline-block;margin-bottom:2px"><strong style="font-size:11px;color:var(--primary)">${s.year}</strong> ${(s.months||[]).map(m=>`<span class="monitoring-tag">${m}月</span>`).join('')}</span>`).join('<br>');
+}
+
+// ==================== スタッフマスター ====================
+let editStaffId = null;
+
+function buildSabikanSelect(selected){
+  const sel = document.getElementById('f-sabikan');
+  if(!sel) return;
+  const staff = loadStaff().filter(s=>s.role==='サービス管理責任者');
+  sel.innerHTML = '<option value="">― 選択してください ―</option>';
+  staff.sort((a,b)=>(a.kana||a.name).localeCompare(b.kana||b.name,'ja')).forEach(s=>{
+    const opt = document.createElement('option');
+    opt.value = s.name; opt.textContent = s.name;
+    if(s.name === selected) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  // 未登録の場合も手入力できるよう「その他入力」は省略（名前そのまま表示）
+  if(selected && !staff.find(s=>s.name===selected)){
+    const opt = document.createElement('option');
+    opt.value = selected; opt.textContent = selected; opt.selected = true;
+    sel.appendChild(opt);
+  }
+}
+
+function renderStaff(){
+  const staff = loadStaff();
+  const search = document.getElementById('staff-search').value.trim().toLowerCase();
+  const filtered = staff
+    .filter(s=>!search||s.name.includes(search)||(s.kana||'').includes(search)||(s.role||'').includes(search))
+    .sort((a,b)=>(a.kana||a.name).localeCompare(b.kana||b.name,'ja'));
+
+  const tbody = document.getElementById('staff-tbody');
+  tbody.innerHTML = '';
+  document.getElementById('staff-empty').style.display = filtered.length ? 'none' : 'block';
+
+  filtered.forEach((s,idx)=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="text-align:center;font-size:11px;color:var(--muted);font-weight:600">${idx+1}</td>
+      <td><strong>${s.name}</strong>${s.kana?`<br><span style="font-size:10px;color:var(--muted)">${s.kana}</span>`:''}</td>
+      <td><span style="background:var(--primary-bg);color:var(--primary);border-radius:20px;padding:2px 10px;font-size:11px;font-weight:600">${s.role||'―'}</span></td>
+      <td style="font-size:12px">${s.facility||'<span style="color:var(--muted)">―</span>'}</td>
+      <td style="font-size:12px">${s.contact||'<span style="color:var(--muted)">―</span>'}</td>
+      <td style="font-size:11px;color:var(--muted)">${s.note||''}</td>
+      <td><button class="btn btn-sm" style="background:#eef2ff;color:var(--primary)" onclick="openStaffModal(${s.id})">編集</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function openStaffModal(id){
+  editStaffId = id || null;
+  const isEdit = !!id;
+  document.getElementById('staff-modal-title').textContent = isEdit ? 'スタッフを編集' : 'スタッフを追加';
+  document.getElementById('btn-delete-staff').style.display = isEdit ? 'inline-block' : 'none';
+
+  // 施設プルダウン生成
+  const facSel = document.getElementById('sf2-facility');
+  facSel.innerHTML = '<option value="">― 選択してください ―</option>';
+  loadFacilities().sort((a,b)=>a.name.localeCompare(b.name,'ja')).forEach(f=>{
+    const opt = document.createElement('option');
+    opt.value = f.name; opt.textContent = f.name;
+    facSel.appendChild(opt);
+  });
+
+  if(isEdit){
+    const s = loadStaff().find(x=>x.id===id);
+    if(!s) return;
+    document.getElementById('sf2-name').value    = s.name;
+    document.getElementById('sf2-kana').value    = s.kana||'';
+    document.getElementById('sf2-role').value    = s.role||'サービス管理責任者';
+    document.getElementById('sf2-facility').value= s.facility||'';
+    document.getElementById('sf2-contact').value = s.contact||'';
+    document.getElementById('sf2-note').value    = s.note||'';
+  } else {
+    ['sf2-name','sf2-kana','sf2-contact','sf2-note'].forEach(i=>document.getElementById(i).value='');
+    document.getElementById('sf2-role').value = 'サービス管理責任者';
+    document.getElementById('sf2-facility').value = '';
+  }
+  document.getElementById('modal-staff').classList.add('open');
+}
+
+function saveStaff(){
+  const name = document.getElementById('sf2-name').value.trim();
+  if(!name){ alert('氏名は必須です'); return; }
+  const data = {
+    name,
+    kana:     document.getElementById('sf2-kana').value.trim(),
+    role:     document.getElementById('sf2-role').value,
+    facility: document.getElementById('sf2-facility').value,
+    contact:  document.getElementById('sf2-contact').value.trim(),
+    note:     document.getElementById('sf2-note').value.trim(),
+  };
+  const staff = loadStaff();
+  if(editStaffId){
+    const idx = staff.findIndex(x=>x.id===editStaffId);
+    if(idx>-1) staff[idx] = {...staff[idx], ...data};
+  } else {
+    const newId = staff.length ? Math.max(...staff.map(x=>x.id))+1 : 1;
+    staff.push({id:newId, ...data});
+  }
+  saveStaffData(staff);
+  closeModal('modal-staff');
+  renderStaff();
+}
+
+function openDeleteStaffConfirm(){
+  document.getElementById('modal-delete-staff').classList.add('open');
+}
+
+function deleteStaff(){
+  saveStaffData(loadStaff().filter(x=>x.id!==editStaffId));
+  closeModal('modal-delete-staff');
+  closeModal('modal-staff');
+  renderStaff();
+}
+
+// ==================== 施設マスター ====================
+let editFacilityId = null;
+
+function buildFacilitySelect(selectedFacility){
+  const sel = document.getElementById('f-facility');
+  if(!sel) return;
+  const facilities = loadFacilities();
+  sel.innerHTML = '';
+  facilities.sort((a,b)=>a.name.localeCompare(b.name,'ja')).forEach(f=>{
+    const opt = document.createElement('option');
+    opt.value = f.name; opt.textContent = f.name;
+    if(f.name === selectedFacility) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+function renderFacilities(){
+  const facilities = loadFacilities();
+  const residents  = loadResidents();
+  const search = document.getElementById('facility-search').value.trim().toLowerCase();
+  const filtered = facilities
+    .filter(f=>!search || f.name.includes(search))
+    .sort((a,b)=>a.name.localeCompare(b.name,'ja'));
+
+  const tbody = document.getElementById('facility-tbody');
+  tbody.innerHTML = '';
+  document.getElementById('facility-empty').style.display = filtered.length ? 'none' : 'block';
+
+  filtered.forEach((f,idx)=>{
+    const count = residents.filter(r=>r.facility===f.name).length;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="text-align:center;font-size:11px;color:var(--muted);font-weight:600">${idx+1}</td>
+      <td><strong>${f.name}</strong>${f.note?`<br><span style="font-size:10px;color:var(--muted)">${f.note}</span>`:''}</td>
+      <td style="font-size:12px">${f.address||'<span style="color:var(--muted)">―</span>'}</td>
+      <td style="font-size:12px">${f.tel||'<span style="color:var(--muted)">―</span>'}</td>
+      <td style="text-align:center">
+        <span style="background:var(--primary-bg);color:var(--primary);border-radius:20px;padding:2px 10px;font-size:12px;font-weight:600">${count}名</span>
+      </td>
+      <td><button class="btn btn-sm" style="background:#eef2ff;color:var(--primary)" onclick="openFacilityModal(${f.id})">編集</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function openFacilityModal(id){
+  editFacilityId = id || null;
+  const isEdit = !!id;
+  document.getElementById('facility-modal-title').textContent = isEdit ? '施設を編集' : '施設を追加';
+  document.getElementById('btn-delete-facility').style.display = isEdit ? 'inline-block' : 'none';
+  if(isEdit){
+    const f = loadFacilities().find(x=>x.id===id);
+    if(!f) return;
+    document.getElementById('fc-name').value    = f.name;
+    document.getElementById('fc-address').value = f.address||'';
+    document.getElementById('fc-tel').value     = f.tel||'';
+    document.getElementById('fc-note').value    = f.note||'';
+  } else {
+    ['fc-name','fc-address','fc-tel','fc-note'].forEach(i=>document.getElementById(i).value='');
+  }
+  document.getElementById('modal-facility').classList.add('open');
+}
+
+function saveFacility(){
+  const name = document.getElementById('fc-name').value.trim();
+  if(!name){ alert('施設名は必須です'); return; }
+  const data = {
+    name,
+    address: document.getElementById('fc-address').value.trim(),
+    tel:     document.getElementById('fc-tel').value.trim(),
+    note:    document.getElementById('fc-note').value.trim(),
+  };
+  const facilities = loadFacilities();
+  if(editFacilityId){
+    const idx = facilities.findIndex(x=>x.id===editFacilityId);
+    if(idx>-1){
+      const oldName = facilities[idx].name;
+      facilities[idx] = {...facilities[idx], ...data};
+      // 利用者の施設名も更新
+      if(oldName !== name){
+        const residents = loadResidents();
+        residents.forEach(r=>{ if(r.facility===oldName) r.facility=name; });
+        saveResidents(residents);
+      }
+    }
+  } else {
+    const newId = facilities.length ? Math.max(...facilities.map(x=>x.id))+1 : 1;
+    facilities.push({id:newId, ...data});
+  }
+  saveFacilities(facilities);
+  closeModal('modal-facility');
+  renderFacilities();
+}
+
+function openDeleteFacilityConfirm(){
+  document.getElementById('modal-delete-facility').classList.add('open');
+}
+
+function deleteFacility(){
+  const facilities = loadFacilities().filter(x=>x.id!==editFacilityId);
+  // 利用者の施設欄をクリア
+  const f = loadFacilities().find(x=>x.id===editFacilityId);
+  if(f){
+    const residents = loadResidents();
+    residents.forEach(r=>{ if(r.facility===f.name) r.facility=''; });
+    saveResidents(residents);
+  }
+  saveFacilities(facilities);
+  closeModal('modal-delete-facility');
+  closeModal('modal-facility');
+  renderFacilities();
+}
+
+// ==================== 相談事業所プルダウン連動 ====================
+function buildAgencySelect(selectedAgency, selectedPlanner){
+  const agencies=loadAgencies();
+  const agSel=document.getElementById('f-agency');
+  agSel.innerHTML='<option value="">― 選択してください ―</option>';
+  agencies.forEach(a=>{
+    const opt=document.createElement('option');
+    opt.value=a.name; opt.textContent=a.name;
+    if(a.name===selectedAgency) opt.selected=true;
+    agSel.appendChild(opt);
+  });
+  // 手入力用「その他」
+  const other=document.createElement('option');
+  other.value='__other__'; other.textContent='その他（直接入力）';
+  agSel.appendChild(other);
+  buildPlannerSelect(selectedAgency, selectedPlanner);
+}
+
+function buildPlannerSelect(agencyName, selectedPlanner){
+  const agencies=loadAgencies();
+  const ag=agencies.find(a=>a.name===agencyName);
+  const plSel=document.getElementById('f-planner');
+  plSel.innerHTML='';
+  if(!ag){
+    plSel.innerHTML='<option value="">― 事業所を選択後に選んでください ―</option>';
+    return;
+  }
+  const blank=document.createElement('option');
+  blank.value=''; blank.textContent='― 選択してください ―';
+  plSel.appendChild(blank);
+  ag.planners.forEach(p=>{
+    const pl=normalizePlanner(p);
+    const opt=document.createElement('option');
+    opt.value=pl.name; opt.textContent=pl.name;
+    if(pl.name===selectedPlanner) opt.selected=true;
+    plSel.appendChild(opt);
+  });
+}
+
+function onAgencySelectChange(){
+  const val=document.getElementById('f-agency').value;
+  buildPlannerSelect(val,'');
+}
+
+// ==================== 相談事業所CRUD ====================
+let editAgencyId=null;
+
+function renderAgencies(){
+  const agencies=loadAgencies();
+  const residents=loadResidents();
+  const search=document.getElementById('agency-search').value.trim().toLowerCase();
+  const filtered=agencies
+    .filter(a=>!search||a.name.includes(search)||a.planners.some(p=>{
+      const pl=normalizePlanner(p); return pl.name.includes(search);
+    }))
+    .sort((a,b)=>a.name.localeCompare(b.name,'ja'));
+
+  document.getElementById('agency-empty').style.display=filtered.length?'none':'block';
+  const wrap=document.getElementById('agency-cards');
+  if(!filtered.length){ wrap.innerHTML=''; return; }
+
+  wrap.innerHTML=`<div class="agency-grid">${filtered.map(a=>{
+    const plannersHtml = a.planners.length
+      ? a.planners.map(p=>{
+          const pl=normalizePlanner(p);
+          const contacts=pl.contacts.map(c=>`
+            <div style="font-size:10px;color:var(--muted);margin-left:8px;margin-top:2px">
+              ${c.type==='携帯'?'📱':c.type==='メール'?'✉️':c.type==='直通'?'☎️':'📋'} ${c.value}
+            </div>`).join('');
+          // この相談員が担当している利用者（planner名が一致するもの）
+          const myResidents = residents.filter(r=>r.agency===a.name && r.planner===pl.name);
+          const myResidentsHtml = myResidents.length
+            ? myResidents.map(r=>`<span class="resident-chip" style="font-size:10px;padding:2px 8px">🙂 ${r.name}</span>`).join('')
+            : `<span style="font-size:10px;color:var(--muted)">担当なし</span>`;
+          return `<div style="margin-bottom:10px;padding:8px;background:#f8f9fc;border-radius:8px;border-left:3px solid var(--primary-light)">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+              <span class="planner-chip" style="margin:0">👤 ${pl.name}</span>
+            </div>
+            ${contacts}
+            <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:3px">${myResidentsHtml}</div>
+          </div>`;
+        }).join('')
+      : '<span style="font-size:11px;color:var(--muted)">未登録</span>';
+
+    return `
+      <div class="agency-card">
+        <div class="agency-card-header">
+          <div class="agency-card-name">🏢 ${a.name}</div>
+          <button class="agency-edit-btn" onclick="openAgencyModal(${a.id})">✏️ 編集</button>
+        </div>
+        <div class="agency-card-body">
+          ${(a.zip||a.address)?`<div class="agency-info-row"><span class="agency-info-icon">📍</span><span class="agency-info-val">${a.zip?`〒${a.zip} `:''} ${a.address||''}</span></div>`:''}
+          ${a.tel?`<div class="agency-info-row"><span class="agency-info-icon">📞</span><span class="agency-info-val">${a.tel}</span></div>`:''}
+          ${a.fax?`<div class="agency-info-row"><span class="agency-info-icon">📠</span><span class="agency-info-val">${a.fax}</span></div>`:''}
+          <hr class="agency-divider">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-weight:600">相談員 / 担当利用者</div>
+          <div>${plannersHtml}</div>
+        </div>
+      </div>`;
+  }).join('')}</div>`;
+}
+
+function openAgencyModal(id){
+  editAgencyId=id||null;
+  const isEdit=!!id;
+  document.getElementById('agency-modal-title').textContent=isEdit?'相談事業所を編集':'相談事業所を追加';
+  document.getElementById('btn-delete-agency').style.display=isEdit?'inline-block':'none';
+
+  if(isEdit){
+    const a=loadAgencies().find(x=>x.id===id);
+    if(!a) return;
+    document.getElementById('ag-name').value=a.name;
+    document.getElementById('ag-zip').value=a.zip||'';
+    document.getElementById('ag-address').value=a.address||'';
+    document.getElementById('ag-tel').value=a.tel||'';
+    document.getElementById('ag-fax').value=a.fax||'';
+    renderPlannerFields(a.planners);
+  } else {
+    ['ag-name','ag-zip','ag-address','ag-tel','ag-fax'].forEach(i=>document.getElementById(i).value='');
+    renderPlannerFields(['']);
+  }
+  document.getElementById('modal-agency').classList.add('open');
+}
+
+// planners は [{name, contacts:[{type,value}]}] 形式
+// 旧形式（文字列配列）との互換性を保つ
+function normalizePlanner(p){
+  if(typeof p === 'string') return { name: p, contacts: [] };
+  return { name: p.name||'', contacts: p.contacts||[] };
+}
+
+function renderPlannerFields(planners){
+  const wrap = document.getElementById('ag-planners-wrap');
+  wrap.innerHTML = '';
+  (planners.length ? planners : ['']).forEach((p, i) => {
+    const pl = normalizePlanner(p);
+    wrap.appendChild(createPlannerBlock(i, pl));
+  });
+}
+
+function createPlannerBlock(i, pl){
+  const div = document.createElement('div');
+  div.className = 'planner-field-row';
+  div.id = `prow-${i}`;
+
+  const contactsHtml = (pl.contacts||[]).map((c, ci) => `
+    <div class="planner-contact-row" id="crow-${i}-${ci}">
+      <select id="ctype-${i}-${ci}">
+        <option value="携帯" ${c.type==='携帯'?'selected':''}>📱 携帯</option>
+        <option value="直通" ${c.type==='直通'?'selected':''}>☎️ 直通</option>
+        <option value="メール" ${c.type==='メール'?'selected':''}>✉️ メール</option>
+        <option value="その他" ${c.type==='その他'?'selected':''}>📋 その他</option>
+      </select>
+      <input type="text" id="cval-${i}-${ci}" value="${c.value||''}" placeholder="番号・アドレスを入力">
+      <button class="planner-remove-btn" onclick="removePlannerContact(${i},${ci})" title="削除">✕</button>
+    </div>`).join('');
+
+  div.innerHTML = `
+    <div class="planner-field-main">
+      <input type="text" placeholder="例：田中 花子" value="${pl.name}" id="pf-${i}">
+      <button class="planner-remove-btn" onclick="removePlannerField(${i})" title="相談員を削除">✕</button>
+    </div>
+    <div class="planner-contacts" id="pcontacts-${i}">${contactsHtml}</div>
+    <button class="add-contact-btn" onclick="addPlannerContact(${i})">＋ 連絡先を追加</button>
+  `;
+  return div;
+}
+
+function addPlannerField(){
+  const wrap = document.getElementById('ag-planners-wrap');
+  const i = wrap.querySelectorAll('.planner-field-row').length;
+  wrap.appendChild(createPlannerBlock(i, {name:'', contacts:[]}));
+}
+
+function addPlannerContact(pi){
+  const contactsWrap = document.getElementById(`pcontacts-${pi}`);
+  const ci = contactsWrap.querySelectorAll('.planner-contact-row').length;
+  const div = document.createElement('div');
+  div.className = 'planner-contact-row';
+  div.id = `crow-${pi}-${ci}`;
+  div.innerHTML = `
+    <select id="ctype-${pi}-${ci}">
+      <option value="携帯">📱 携帯</option>
+      <option value="直通">☎️ 直通</option>
+      <option value="メール">✉️ メール</option>
+      <option value="その他">📋 その他</option>
+    </select>
+    <input type="text" id="cval-${pi}-${ci}" placeholder="番号・アドレスを入力">
+    <button class="planner-remove-btn" onclick="removePlannerContact(${pi},${ci})" title="削除">✕</button>
+  `;
+  contactsWrap.appendChild(div);
+}
+
+function removePlannerContact(pi, ci){
+  const el = document.getElementById(`crow-${pi}-${ci}`);
+  if(el) el.remove();
+}
+
+function collectPlanners(){
+  const wrap = document.getElementById('ag-planners-wrap');
+  const rows = wrap.querySelectorAll('.planner-field-row');
+  const result = [];
+  rows.forEach((row, i) => {
+    const nameEl = document.getElementById(`pf-${i}`);
+    const name = nameEl ? nameEl.value.trim() : '';
+    if(!name) return;
+    const contacts = [];
+    const cRows = row.querySelectorAll('.planner-contact-row');
+    cRows.forEach((cr, ci) => {
+      const type  = document.getElementById(`ctype-${i}-${ci}`)?.value || '携帯';
+      const value = document.getElementById(`cval-${i}-${ci}`)?.value.trim() || '';
+      if(value) contacts.push({type, value});
+    });
+    result.push({name, contacts});
+  });
+  return result;
+}
+
+function removePlannerField(i){
+  const el=document.getElementById(`prow-${i}`);
+  if(el) el.remove();
+}
+
+function saveAgency(){
+  const name=document.getElementById('ag-name').value.trim();
+  if(!name){ alert('事業所名は必須です'); return; }
+  const planners = collectPlanners();
+  const data={
+    name,
+    zip:document.getElementById('ag-zip').value.trim(),
+    address:document.getElementById('ag-address').value.trim(),
+    tel:document.getElementById('ag-tel').value.trim(),
+    fax:document.getElementById('ag-fax').value.trim(),
+    planners,
+  };
+  const agencies=loadAgencies();
+  if(editAgencyId){
+    const idx=agencies.findIndex(x=>x.id===editAgencyId);
+    if(idx>-1) agencies[idx]={...agencies[idx],...data};
+    // 利用者側の事業所名も更新
+    const oldName=agencies[idx]?.name;
+    if(oldName&&oldName!==name){
+      const residents=loadResidents();
+      residents.forEach(r=>{ if(r.agency===oldName) r.agency=name; });
+      saveResidents(residents);
+    }
+  } else {
+    const newId=agencies.length?Math.max(...agencies.map(x=>x.id))+1:1;
+    agencies.push({id:newId,...data});
+  }
+  saveAgencies(agencies);
+  closeModal('modal-agency');
+  renderAgencies();
+}
+
+function openDeleteAgencyConfirm(){
+  document.getElementById('modal-delete-agency').classList.add('open');
+}
+
+function deleteAgency(){
+  closeModal('modal-delete-agency');
+  const agencies=loadAgencies();
+  const a=agencies.find(x=>x.id===editAgencyId);
+  if(a){
+    const residents=loadResidents();
+    residents.forEach(r=>{ if(r.agency===a.name){ r.agency=''; r.planner=''; } });
+    saveResidents(residents);
+  }
+  saveAgencies(agencies.filter(x=>x.id!==editAgencyId));
+  closeModal('modal-agency');
+  renderAgencies();
+}
+
+// ==================== ログクリア確認 ====================
+function openLogClearConfirm(){
+  document.getElementById('modal-log-clear').classList.add('open');
+}
+
+function execLogClear(){
+  const input = document.getElementById('log-clear-password').value;
+  const err   = document.getElementById('log-clear-error');
+  if(input !== APP_PASSWORD){
+    err.style.display = 'block';
+    document.getElementById('log-clear-password').value = '';
+    return;
+  }
+  err.style.display = 'none';
+  document.getElementById('log-clear-password').value = '';
+  // 完了ログ（履歴）のみ削除。進行中フロー（residents.flow）はそのまま残す
+  saveLogs([]);
+  closeModal('modal-log-clear');
+  renderLogs();
+}
+
+// ==================== 履歴モーダル ====================
+let historyResidentId=null;
+let editLogId=null;
+
+function openHistoryModal(rid){
+  historyResidentId=rid;
+  const residents=loadResidents();
+  const r=residents.find(x=>x.id===rid);
+  if(!r) return;
+
+  document.getElementById('history-modal-title').textContent=`📂 ${r.name}さんの実施履歴`;
+
+  const logs=loadLogs().filter(l=>l.residentId===rid).sort((a,b)=>b.completedAt.localeCompare(a.completedAt));
+
+  const el=document.getElementById('history-list');
+  if(!logs.length){
+    el.innerHTML='<div class="empty">まだ登録された履歴がありません</div>';
+  } else {
+    el.innerHTML=logs.map(l=>{
+      const s1=l.flow?.step1, s2=l.flow?.step2, s3=l.flow?.step3;
+      return `
+        <div class="history-item">
+          <div class="history-header" onclick="toggleHistoryDetail('hd-${l.id}')">
+            <div>
+              <div class="history-date">📅 ${l.completedAt.replace(/-/g,'/')} 登録分</div>
+              <div class="history-meta">①${s1?.date?.slice(5).replace('-','/')||'―'} ②${s2?.date?.slice(5).replace('-','/')||'―'} ③${s3?.date?.slice(5).replace('-','/')||'―'}</div>
+            </div>
+            <button class="history-edit-btn" onclick="event.stopPropagation();openLogEdit(${l.id})">✏️ 修正</button>
+          </div>
+          <div class="history-steps" id="hd-${l.id}" style="display:none">
+            <div class="hstep">
+              <div class="hstep-dot s1"></div>
+              <div>
+                <div class="hstep-label">① モニタリング実施</div>
+                <div class="hstep-detail">
+                  実施日：${s1?.date?.replace(/-/g,'/')||'―'}<br>
+                  次回周期：${s1?.nextCycle||'―'}ヶ月<br>
+                  ${s1?.memo?`メモ：${s1.memo}`:''}
+                </div>
+              </div>
+            </div>
+            <div class="hstep">
+              <div class="hstep-dot s2"></div>
+              <div>
+                <div class="hstep-label">② カンファレンス</div>
+                <div class="hstep-detail">
+                  実施日：${s2?.date?.replace(/-/g,'/')||'―'}<br>
+                  参加者：${s2?.participants?.join('・')||'―'}<br>
+                  ${s2?.memo?`メモ：${s2.memo}`:''}
+                </div>
+              </div>
+            </div>
+            <div class="hstep">
+              <div class="hstep-dot s3"></div>
+              <div>
+                <div class="hstep-label">③ 個別支援計画書 郵送</div>
+                <div class="hstep-detail">
+                  郵送日：${s3?.date?.replace(/-/g,'/')||'―'}<br>
+                  送付先：${s3?.dest||'―'}<br>
+                  ${s3?.memo?`メモ：${s3.memo}`:''}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+  document.getElementById('modal-history').classList.add('open');
+}
+
+function toggleHistoryDetail(id){
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.style.display=el.style.display==='none'?'block':'none';
+}
+
+function openLogEdit(logId){
+  const logs=loadLogs();
+  const l=logs.find(x=>x.id===logId);
+  if(!l) return;
+  editLogId=logId;
+
+  const s1=l.flow?.step1||{}, s2=l.flow?.step2||{}, s3=l.flow?.step3||{}, s4=l.flow?.step4||{};
+  document.getElementById('he-sub').textContent=`${l.residentName} / ${l.completedAt.replace(/-/g,'/')} 登録分`;
+  document.getElementById('he-title').textContent='実施記録の確認・修正';
+
+  document.getElementById('he-body').innerHTML=`
+    <div class="he-section">
+      <div class="he-section-title"><span style="background:#e8f0fd;width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px">📋</span> ①モニタリング実施</div>
+      <div class="field"><label>実施日</label><input type="date" id="he-s1-date" value="${s1.date||''}"></div>
+      <div class="field"><label>次回実施周期</label>
+        <select id="he-s1-cycle">
+          <option value="1" ${s1.nextCycle==1?'selected':''}>1ヶ月後</option>
+          <option value="3" ${s1.nextCycle==3?'selected':''}>3ヶ月後</option>
+          <option value="6" ${!s1.nextCycle||s1.nextCycle==6?'selected':''}>6ヶ月後（標準）</option>
+        </select>
+      </div>
+      <div class="field"><label>メモ</label><textarea id="he-s1-memo" rows="2">${s1.memo||''}</textarea></div>
+    </div>
+    <div class="he-section">
+      <div class="he-section-title"><span style="background:#f3e8fd;width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px">✏️</span> ②原案作成</div>
+      <div class="field"><label>作成日</label><input type="date" id="he-s2-date" value="${s2.date||''}"></div>
+      <div class="field"><label>作成者</label><input type="text" id="he-s2-author" value="${s2.author||''}" placeholder="例：吉川 浩史"></div>
+      <div class="field">
+        <label>代表チェック</label>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg);border-radius:8px;border:1.5px solid var(--border);margin-top:2px">
+          <input type="checkbox" id="he-s2-checked" style="width:18px;height:18px;cursor:pointer;accent-color:var(--ok)" ${s2.checked?'checked':''}>
+          <label for="he-s2-checked" style="font-size:13px;cursor:pointer;color:var(--text);font-weight:500;margin:0">確認済み ✅</label>
+        </div>
+      </div>
+      <div class="field"><label>メモ</label><textarea id="he-s2-memo" rows="2">${s2.memo||''}</textarea></div>
+    </div>
+    <div class="he-section">
+      <div class="he-section-title"><span style="background:#e8f8ee;width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px">👥</span> ③カンファレンス（3名参加）</div>
+      <div class="field"><label>実施日</label><input type="date" id="he-s3-date" value="${s3.date||''}"></div>
+      <div class="he-grid3">
+        <div class="field"><label>参加者①（本人）</label><input type="text" id="he-s3-p1" value="${s3.participants?.[0]||''}"></div>
+        <div class="field"><label>参加者②（サビ管）</label><input type="text" id="he-s3-p2" value="${s3.participants?.[1]||''}"></div>
+        <div class="field"><label>参加者③（世話人等）</label><input type="text" id="he-s3-p3" value="${s3.participants?.[2]||''}"></div>
+      </div>
+      <div class="field"><label>メモ</label><textarea id="he-s3-memo" rows="2">${s3.memo||''}</textarea></div>
+    </div>
+    <div class="he-section">
+      <div class="he-section-title"><span style="background:#fef0e0;width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px">📮</span> ④個別支援計画書 郵送</div>
+      <div class="field"><label>郵送日</label><input type="date" id="he-s4-date" value="${s4.date||''}"></div>
+      <div class="field"><label>送付先</label><input type="text" id="he-s4-dest" value="${s4.dest||''}"></div>
+      <div class="field"><label>メモ</label><textarea id="he-s4-memo" rows="2">${s4.memo||''}</textarea></div>
+    </div>
+  `;
+
+  document.getElementById('modal-history-edit').classList.add('open');
+}
+
+function saveLogEdit(){
+  const logs=loadLogs();
+  const idx=logs.findIndex(x=>x.id===editLogId);
+  if(idx<0) return;
+
+  const nextCycle=parseInt(document.getElementById('he-s1-cycle').value||'6');
+  logs[idx].flow={
+    step1:{date:document.getElementById('he-s1-date').value,nextCycle,memo:document.getElementById('he-s1-memo').value},
+    step2:{date:document.getElementById('he-s2-date').value,author:document.getElementById('he-s2-author').value,checked:document.getElementById('he-s2-checked')?.checked||false,memo:document.getElementById('he-s2-memo').value},
+    step3:{
+      date:document.getElementById('he-s3-date').value,
+      participants:[document.getElementById('he-s3-p1').value,document.getElementById('he-s3-p2').value,document.getElementById('he-s3-p3').value].filter(Boolean),
+      memo:document.getElementById('he-s3-memo').value,
+    },
+    step4:{date:document.getElementById('he-s4-date').value,dest:document.getElementById('he-s4-dest').value,memo:document.getElementById('he-s4-memo').value},
+  };
+  logs[idx].completedAt=document.getElementById('he-s4-date').value||logs[idx].completedAt;
+  saveLogs(logs);
+  closeModal('modal-history-edit');
+  // 履歴モーダルを再描画
+  openHistoryModal(historyResidentId);
+  renderDashboard();
+}
+
+function openDeleteLogConfirm(){
+  document.getElementById('modal-delete-log').classList.add('open');
+}
+
+function deleteLog(){
+  closeModal('modal-delete-log');
+  saveLogs(loadLogs().filter(x=>x.id!==editLogId));
+  closeModal('modal-history-edit');
+  openHistoryModal(historyResidentId);
+}
+
+// ==================== 共通 ====================
+
+// ==================== レスポンシブ切り替え ====================
+function applyResponsive(){
+  const isSP = window.innerWidth <= 768;
+  const tableWrap = document.querySelector('#page-dashboard .table-wrap');
+  const spCards   = document.getElementById('dash-cards-sp');
+  if(tableWrap) tableWrap.style.display = isSP ? 'none' : 'block';
+  if(spCards)   spCards.style.display   = isSP ? 'flex'  : 'none';
+}
+
+// ==================== ログイン ====================
+// ★ パスワードはここを変更してください ★
+const APP_PASSWORD = 'eureka1234';
+const SESSION_KEY  = 'ym_auth';
+
+function doLogin(){
+  const input = document.getElementById('login-password').value;
+  const err   = document.getElementById('login-error');
+  if(input === APP_PASSWORD){
+    sessionStorage.setItem(SESSION_KEY, '1');
+    document.getElementById('login-screen').style.display = 'none';
+    startApp();
+  } else {
+    err.style.display = 'block';
+    document.getElementById('login-password').value = '';
+    document.getElementById('login-password').focus();
+  }
+}
+
+function checkLogin(){
+  if(sessionStorage.getItem(SESSION_KEY) === '1'){
+    document.getElementById('login-screen').style.display = 'none';
+    startApp();
+  } else {
+    // ログイン画面を表示したままにする
+    document.getElementById('login-password').focus();
+  }
+}
+
+async function startApp(){
+  document.querySelectorAll('.modal-overlay').forEach(o=>{
+    o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('open'); });
+  });
+  document.getElementById('res-search').addEventListener('input',renderResidents);
+  document.getElementById('facility-search').addEventListener('input',renderFacilities);
+  document.getElementById('agency-search').addEventListener('input',renderAgencies);
+  document.getElementById('staff-search').addEventListener('input',renderStaff);
+  const _t=new Date();
+  document.getElementById('today-label').textContent=`${_t.getFullYear()}年${_t.getMonth()+1}月${_t.getDate()}日`;
+  await initData();
+  applyResponsive();
+  renderDashboard();
+  window.addEventListener('resize', ()=>{ applyResponsive(); renderDashboard(); });
+}
+
+// 起動
+checkLogin();
+</script>
+</body>
+</html>
