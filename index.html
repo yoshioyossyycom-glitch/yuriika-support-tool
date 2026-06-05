@@ -1581,7 +1581,8 @@ function renderStaff(){
   filtered.forEach((s,idx)=>{
     const myResidents = residents.filter(r=>r.sabikan===s.name);
     const residentsHtml = myResidents.length
-      ? myResidents.map(r=>`<span class="resident-chip" style="font-size:10px;padding:2px 8px">🙂 ${r.name}</span>`).join('')
+      ? `<span style="background:var(--primary);color:#fff;border-radius:20px;padding:2px 9px;font-size:11px;font-weight:700;margin-right:6px">${myResidents.length}名</span>`
+        + myResidents.map(r=>`<span class="resident-chip" style="font-size:10px;padding:2px 8px">🙂 ${r.name}</span>`).join('')
       : `<span style="color:var(--muted);font-size:11px">―</span>`;
 
     const tr = document.createElement('tr');
