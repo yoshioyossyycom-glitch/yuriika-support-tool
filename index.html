@@ -371,7 +371,7 @@ thead th.sort-asc .sort-icon,thead th.sort-desc .sort-icon{opacity:1;}
   <button onclick="showPage('residents',this)">利用者一覧</button>
   <button onclick="showPage('facilities',this)">施設</button>
   <button onclick="showPage('agencies',this)">相談事業所</button>
-  <button onclick="showPage('staff',this)">スタッフ</button>
+  <button onclick="showPage('staff',this)">サビ管</button>
   <button onclick="showPage('logs',this)">実施ログ</button>
 </div>
 
@@ -490,6 +490,7 @@ thead th.sort-asc .sort-icon,thead th.sort-desc .sort-icon{opacity:1;}
         <th>役職</th>
         <th>施設</th>
         <th>連絡先</th>
+        <th>担当利用者</th>
         <th>備考</th>
         <th></th>
       </tr></thead>
@@ -1567,6 +1568,7 @@ function buildSabikanSelect(selected){
 
 function renderStaff(){
   const staff = loadStaff();
+  const residents = loadResidents();
   const search = document.getElementById('staff-search').value.trim().toLowerCase();
   const filtered = staff
     .filter(s=>!search||s.name.includes(search)||(s.kana||'').includes(search)||(s.role||'').includes(search))
@@ -1577,6 +1579,11 @@ function renderStaff(){
   document.getElementById('staff-empty').style.display = filtered.length ? 'none' : 'block';
 
   filtered.forEach((s,idx)=>{
+    const myResidents = residents.filter(r=>r.sabikan===s.name);
+    const residentsHtml = myResidents.length
+      ? myResidents.map(r=>`<span class="resident-chip" style="font-size:10px;padding:2px 8px">🙂 ${r.name}</span>`).join('')
+      : `<span style="color:var(--muted);font-size:11px">―</span>`;
+
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td style="text-align:center;font-size:11px;color:var(--muted);font-weight:600">${idx+1}</td>
@@ -1584,6 +1591,7 @@ function renderStaff(){
       <td><span style="background:var(--primary-bg);color:var(--primary);border-radius:20px;padding:2px 10px;font-size:11px;font-weight:600">${s.role||'―'}</span></td>
       <td style="font-size:12px">${s.facility||'<span style="color:var(--muted)">―</span>'}</td>
       <td style="font-size:12px">${s.contact||'<span style="color:var(--muted)">―</span>'}</td>
+      <td>${residentsHtml}</td>
       <td style="font-size:11px;color:var(--muted)">${s.note||''}</td>
       <td><button class="btn btn-sm" style="background:#eef2ff;color:var(--primary)" onclick="openStaffModal(${s.id})">編集</button></td>
     `;
